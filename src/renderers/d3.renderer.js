@@ -18,7 +18,6 @@ export default class D3Renderer extends AbstractRenderer {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     this.parentDom.appendChild(svg);
 
-
     this.svg = this.root =
       d3.select(svg)
       .attr('width', config.width)
@@ -45,7 +44,6 @@ export default class D3Renderer extends AbstractRenderer {
     }
   }
 
-
   updateNode(node, value) {
     node.valueTextElement.innerHTML = value ? value.toFixed(2) : 'N/A';
   }
@@ -62,10 +60,8 @@ export default class D3Renderer extends AbstractRenderer {
 
   initialize(modelProfile) {
     super.initialize(modelProfile);
-    const scale = d3.scaleOrdinal(d3.schemePastel1)
-    const nodes = Object.values(this.nodesMap).sort((a, b) => {
-      return a.layerIndex - b.layerIndex
-    });
+    const scale = d3.scaleOrdinal(d3.schemePastel1);
+    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
 
     let startX = 0;
     let maxX = 0;
@@ -88,7 +84,6 @@ export default class D3Renderer extends AbstractRenderer {
       }
     });
 
-
     const simulation = this.simulation = d3.forceSimulation(nodes)
     // .alpha(0.2)
     // .force('link', d3.forceLink(this.links).id(d => d.id).strength(0.01))
@@ -96,15 +91,15 @@ export default class D3Renderer extends AbstractRenderer {
     // .force("collide", d3.forceCollide(this.config.radius * 2))
     // .force('x', d3.forceX().x(d => d.layerIndex * 100).strength(10))
     // .force('y', d3.forceY().y(d => -this.columnSizes[d.layerIndex] * this.config.radius + d.indexInColumn * this.config.radius * 2).strength(0.5))
-    //.force("center", d3.forceCenter())
+    // .force("center", d3.forceCenter())
 
     const link = this.svg.append('g')
       .attr('stroke', '#000')
       .selectAll('line')
       .data(this.links)
       .join('line')
-      .call(function(d) {
-        d.each( (elem, idx, all) => elem.dom = all[idx]);
+      .call(function (d) {
+        d.each((elem, idx, all) => elem.dom = all[idx]);
       });
 
     const node = this.svg.append('g')
@@ -114,7 +109,6 @@ export default class D3Renderer extends AbstractRenderer {
       .append('g')
       .attr('class', 'node')
       .join('.node')
-
 
     node.append('circle')
       .attr('r', this.config.radius)
@@ -131,7 +125,7 @@ export default class D3Renderer extends AbstractRenderer {
       .text(function (d) {
         d.biasTextElement = this;
         return d.bias
-      })
+      });
 
     node.append('text')
       .attr('stroke', '#000')
@@ -142,7 +136,7 @@ export default class D3Renderer extends AbstractRenderer {
       .text(function (d) {
         d.valueTextElement = this;
         return d.value ? d.value.toFixed(2) : ''
-      })
+      });
 
     simulation.on('tick', () => {
       link
@@ -153,6 +147,5 @@ export default class D3Renderer extends AbstractRenderer {
 
       node.attr('transform', d => `translate(${d.x}, ${d.y})`);
     });
-
   }
 }

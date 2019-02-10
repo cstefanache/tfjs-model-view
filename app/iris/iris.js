@@ -28,6 +28,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     metrics: ['accuracy']
   });
 
+  /** Render model view */
   new ModelView(model, {
     renderer: 'd3'
   });

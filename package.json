@@ -1,8 +1,8 @@
 {
   "name": "tfjs-model-view",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Tensorflow.JS model viewer",
-  "main": "src/index.js",
+  "main": "lib/tfjs-model-view.min.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build && npm run test",
     "dev": "webpack-dev-server --hot --config webpack.dev.config.js --progress --colors --watch --mode=development",

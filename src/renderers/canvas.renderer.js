@@ -1,4 +1,3 @@
-import * as d3 from 'd3';
 import AbstractRenderer from './abstract.renderer';
 
 const defaultLayerProfile = {
@@ -8,7 +7,6 @@ const defaultLayerProfile = {
 
   }
 }
-
 export default class CanvasRenderer extends AbstractRenderer {
 
   constructor(parentDom, config) {
@@ -38,22 +36,16 @@ export default class CanvasRenderer extends AbstractRenderer {
     }
   }
 
-
   updateNode(node, value) {
     node.render(value);
   }
 
-  updateBias(node) {
-
-  }
-
+  updateBias() {}
 
   initialize(modelProfile) {
     super.initialize(modelProfile);
 
-    const nodes = Object.values(this.nodesMap).sort((a, b) => {
-      return a.layerIndex - b.layerIndex
-    });
+    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
 
     let startX = 0;
     let maxX = 0;
@@ -62,9 +54,8 @@ export default class CanvasRenderer extends AbstractRenderer {
     nodes.forEach(d => {
       const layerConfig = {
         columns: 1,
-        getFillStyle: value => `rgba(255, 255, 255, ${ value / 255})`,
+        getFillStyle: value => `rgba(255, 255, 255, ${value / 255})`,
         radius: this.config.radius,
-
         ...this.config.layer[d.layerName]
       }
 
@@ -107,8 +98,5 @@ export default class CanvasRenderer extends AbstractRenderer {
       this.ctx.arc(x, y, node.radius, 0, 2 * Math.PI);
       this.ctx.stroke();
     });
-
-    console.log(nodes);
-
   }
 }
