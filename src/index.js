@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import parseModel from './model-parser';
 import defaultConfig from './default.config';
 import rendererMap from './renderers';
