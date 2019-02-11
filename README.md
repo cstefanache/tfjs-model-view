@@ -12,7 +12,7 @@ The library also aims to be flexible and make it easy for you to incorporate.
 
 ## Sample rendering output
 
-![Sample](https://raw.githubusercontent.com/cstefanache/cstefanache.github.io/master/media/img/net1.png "Sample")
+![Samples](https://raw.githubusercontent.com/cstefanache/cstefanache.github.io/master/media/img/net2.png "Samples")
 
 
 ## Usage
