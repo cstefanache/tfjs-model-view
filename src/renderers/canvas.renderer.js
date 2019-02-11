@@ -42,6 +42,15 @@ export default class CanvasRenderer extends AbstractRenderer {
 
   updateBias() {}
 
+  update(model) {
+    if (this.config.onPredict) {
+      model.model.renderData.nodes.forEach((node, index) => {
+        node.render(model.output[index]);
+      });
+      this.config.onPredict(this.ctx, model);
+    }
+  }
+
   initialize(modelProfile) {
     super.initialize(modelProfile);
 
@@ -61,22 +70,29 @@ export default class CanvasRenderer extends AbstractRenderer {
 
       let radius = layerConfig.radius;
 
-      d.render = value => {
-        this.ctx.fillStyle = `#000`;
-        this.ctx.beginPath();
-        this.ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
-        this.ctx.fill();
+      if (this.config.nodeRenderer) {
+        d.render = value => {
+          this.config.nodeRenderer(this.ctx, value)
+        };
+      } else {
+        d.render = value => {
+          this.ctx.fillStyle = `#000`;
+          this.ctx.beginPath();
+          this.ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+          this.ctx.fill();
 
-        this.ctx.fillStyle = d.getFillStyle(value);
-        this.ctx.beginPath();
-        this.ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
-        this.ctx.fill();
+          this.ctx.fillStyle = d.getFillStyle(value);
+          this.ctx.beginPath();
+          this.ctx.arc(d.x, d.y, radius, 0, 2 * Math.PI);
+          this.ctx.fill();
+        }
       }
 
       if (layerIndex !== d.layerIndex) {
         layerIndex = d.layerIndex;
         startX = maxX + this.config.layerPadding;
       }
+
       const height = Math.floor(this.columnSizes[d.layerIndex] / layerConfig.columns);
       d.y = Math.floor(this.config.height / 2 - height * radius * 1.5 + Math.floor(d.indexInColumn / layerConfig.columns) * radius * 3);
       d.x = Math.floor(startX + d.indexInLayer % layerConfig.columns * radius * 3);

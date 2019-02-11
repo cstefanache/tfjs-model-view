@@ -15,6 +15,37 @@ The library also aims to be flexible and make it easy for you to incorporate.
 ![Sample](https://raw.githubusercontent.com/cstefanache/cstefanache.github.io/master/media/img/net1.png "Sample")
 
 
+## Usage
+
+```
+const modelView = new ModelView(model, {
+  /** supports: canvas, d3 */
+  renderer: 'd3',           
+
+  /** node radius if no custom renderer is defined */            
+  radius: 10,
+
+  /** prints layer names */                            
+  printStats: true,
+
+  /** gets d3 svg or canvas ctx to pre render */                   
+  prepareRenderContext: context => { ... },
+
+  /** executed when predict is called. gets drawing context and prediction result as parameters */
+  onPredict: (context, result) => { ... },
+
+  /** executed during training and predict. used to update a node */
+  updateNode: (node, value) => { ... },
+
+  /** executed at initialization for each node. context d3 or canvas context */
+  nodeRenderer: context => { ... },
+
+  
+
+})
+```
+
+
 ## Demos
 
 - [Movielens recommendation using Tensorflow.js](https://beta.observablehq.com/@cstefanache/movielens-recommendation-using-tensorflow-js)

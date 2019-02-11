@@ -44,4 +44,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
 }
 
 const [xTrain, yTrain, xTest, yTest] = getIrisData(0.15);
-trainModel(xTrain, yTrain, xTest, yTest);
+
+export default async () => {
+  trainModel(xTrain, yTrain, xTest, yTest);
+}
