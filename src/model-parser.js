@@ -3,7 +3,8 @@ function noop() {}
 async function parseModel(model, options) {
 
   const parsed = {
-    layerMap: {}
+    layerMap: {},
+    layerArr: []
   };
 
   const parserConfig = {
@@ -38,6 +39,7 @@ async function parseModel(model, options) {
     };
 
     parsed.layerMap[name] = currentLayer;
+    parsed.layerArr.unshift(currentLayer);
 
 
     if (activation) {
@@ -102,6 +104,16 @@ async function parseModel(model, options) {
   };
 
   parsed.model = await parseLayer(model.layers[model.layers.length - 1].output);
+
+  if (options.printStats) {
+    const {
+      layerArr
+    } = parsed;
+    console.log(new Array(10).join('-'));
+    layerArr.forEach(layer => {
+      console.log(`Layer: ${layer.name}`);
+    });
+  }
 
   return parsed;
 }

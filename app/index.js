@@ -1,6 +1,6 @@
 import 'babel-polyfill';
 
-import './iris/iris';
+import './iris-custom/iris';
 
 // import './samples/mnist';
 // import './samples/rnn-sample';

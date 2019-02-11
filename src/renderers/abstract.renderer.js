@@ -218,6 +218,5 @@ export default class D3Renderer {
   updateBias(node) {}
   updateLink(link, value) {}
 
-  prepareRenderContext(context) {}
   renderNode(context) {}
 }

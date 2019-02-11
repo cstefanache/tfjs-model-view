@@ -25,6 +25,10 @@ export default class D3Renderer extends AbstractRenderer {
 
     const g = this.svg.append('g');
 
+    if (config.prepareRenderContext) {
+      config.prepareRenderContext(g);
+    }
+
     this.zoom = d3.zoom()
       .on('zoom', () => {
         this.svg.attr('transform', d3.event.transform);
@@ -45,17 +49,33 @@ export default class D3Renderer extends AbstractRenderer {
   }
 
   updateNode(node, value) {
-    node.valueTextElement.innerHTML = value ? value.toFixed(2) : 'N/A';
+    if (node.valueTextElement) {
+      node.valueTextElement.innerHTML = value ? value.toFixed(2) : 'N/A';
+    }
+
+    if (this.config.updateNode) {
+      this.config.updateNode(node, value);
+    }
+  }
+
+  updateBias(node) {
+    if (node.biasTextElement) {
+      node.biasTextElement.innerHTML = node.bias.toFixed(2);
+    }
   }
 
   updateLink(link, value) {
-    d3.select(link.dom)
-      .attr('stroke-width', Math.abs(value))
-      .attr('stroke', value < 0 ? '#FF0000' : '#000000');
+    if (link.dom) {
+      d3.select(link.dom)
+        .attr('stroke-width', Math.abs(value))
+        .attr('stroke', value < 0 ? '#FF0000' : '#000000');
     }
+  }
 
-  updateBias(node) {
-    node.biasTextElement.innerHTML = node.bias.toFixed(2);
+  update(model) {
+    if (this.config.onPredict) {
+      this.config.onPredict(this.svg, model);
+    }
   }
 
   initialize(modelProfile) {
@@ -69,14 +89,16 @@ export default class D3Renderer extends AbstractRenderer {
     nodes.forEach(d => {
       const layerConfig = {
         columns: 1,
+        padding: 100,
+        radius: this.config.radius || 5,
         ...this.config.layer[d.layerName]
       }
       if (layerIndex !== d.layerIndex) {
         layerIndex = d.layerIndex;
-        startX = maxX + 100;
+        startX = maxX + layerConfig.padding;
       }
       const height = Math.floor(this.columnSizes[d.layerIndex] / layerConfig.columns);
-      d.y = this.config.height / 2 - height * this.config.radius * 1.5 + Math.floor(d.indexInColumn / layerConfig.columns) * this.config.radius * 3;
+      d.y = this.config.height / 2 - height * layerConfig.radius * 1.5 + Math.floor(d.indexInColumn / layerConfig.columns) * layerConfig.radius * 3;
       d.x = startX + d.indexInLayer % layerConfig.columns * this.config.radius * 4;
 
       if (maxX < d.x) {
@@ -108,35 +130,48 @@ export default class D3Renderer extends AbstractRenderer {
       .enter()
       .append('g')
       .attr('class', 'node')
+      .attr('id', d => d.id)
       .join('.node')
-
-    node.append('circle')
-      .attr('r', this.config.radius)
-      .attr('fill', d => scale(d.groupIndex))
-      .attr('stroke', '#000')
-      .attr('stroke-width', '1px');
-
-    node.append('text')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 0.5)
-      .attr('font-size', 6)
-      .attr('transform', `translate(0, -${this.config.radius * 1.2})`)
-      .attr('text-anchor', 'middle')
-      .text(function (d) {
-        d.biasTextElement = this;
-        return d.bias
+      .call(function (d) {
+        d.each((elem, idx, all) => elem.dom = d3.select(all[idx]));
       });
 
-    node.append('text')
-      .attr('stroke', '#000')
-      .attr('stroke-width', 0.5)
-      .attr('font-size', 6)
-      .attr('text-anchor', 'middle')
-      .attr('alignment-baseline', 'middle')
-      .text(function (d) {
-        d.valueTextElement = this;
-        return d.value ? d.value.toFixed(2) : ''
+
+    if (this.config.nodeRenderer) {
+      this.config.nodeRenderer({
+        engine: 'd3',
+        node
       });
+    } else {
+
+      node.append('circle')
+        .attr('r', this.config.radius)
+        .attr('fill', d => scale(d.groupIndex))
+        .attr('stroke', '#000')
+        .attr('stroke-width', '1px');
+
+      node.append('text')
+        .attr('stroke', '#000')
+        .attr('stroke-width', 0.5)
+        .attr('font-size', 6)
+        .attr('transform', `translate(0, -${this.config.radius * 1.2})`)
+        .attr('text-anchor', 'middle')
+        .text(function (d) {
+          d.biasTextElement = this;
+          return d.bias
+        });
+
+      node.append('text')
+        .attr('stroke', '#000')
+        .attr('stroke-width', 0.5)
+        .attr('font-size', 6)
+        .attr('text-anchor', 'middle')
+        .attr('alignment-baseline', 'middle')
+        .text(function (d) {
+          d.valueTextElement = this;
+          return d.value ? d.value.toFixed(2) : ''
+        });
+    }
 
     simulation.on('tick', () => {
       link
