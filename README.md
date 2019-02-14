@@ -23,10 +23,19 @@ The library also aims to be flexible and make it easy for you to incorporate.
 
 ## Usage
 
+Simple:
+```
+new ModelView(model)
+```
+
+Customized:
 ```
 const modelView = new ModelView(model, {
   /** supports: canvas, d3 */
-  renderer: 'd3',           
+  renderer: 'd3',   
+  
+  /** if set to false you can get the DOM using modelView.getDOMElement() */
+  appendImmediately: true,
 
   /** node radius if no custom renderer is defined */            
   radius: 10,
@@ -48,9 +57,7 @@ const modelView = new ModelView(model, {
 
   /** executed at initialization for each node. context d3 or canvas context */
   nodeRenderer: context => { ... },
-  
-  
-
+    
 })
 ```
 
