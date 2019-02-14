@@ -10,6 +10,12 @@ Features:
 
 The library also aims to be flexible and make it easy for you to incorporate.
 
+## Demos
+
+- [Movielens recommendation using Tensorflow.js](https://beta.observablehq.com/@cstefanache/movielens-recommendation-using-tensorflow-js)
+- [Iris Prediction with Custom Node Renderer](https://beta.observablehq.com/@cstefanache/tensorflow-js-model-viewer-iris)
+- [MNIST Prediction](https://beta.observablehq.com/@cstefanache/mnist-tensorflow-js-network-view-tfjs-model-view)
+
 ## Sample rendering output
 
 ![Samples](https://raw.githubusercontent.com/cstefanache/cstefanache.github.io/master/media/img/net2.png "Samples")
@@ -47,12 +53,6 @@ const modelView = new ModelView(model, {
 
 })
 ```
-
-
-## Demos
-
-- [Movielens recommendation using Tensorflow.js](https://beta.observablehq.com/@cstefanache/movielens-recommendation-using-tensorflow-js)
-- [Iris Prediction with Custom Node Renderer](https://beta.observablehq.com/@cstefanache/tensorflow-js-model-viewer-iris)
 
 ## Installation
 
