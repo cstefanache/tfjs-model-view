@@ -1,4 +1,20 @@
-import * as d3 from 'd3';
+import {
+  select,
+  event
+} from 'd3-selection';
+
+import {
+  zoom
+} from 'd3-zoom';
+
+import {
+  scaleOrdinal
+} from 'd3-scale';
+
+import {
+  schemeAccent
+} from 'd3-scale-chromatic';
+
 import AbstractRenderer from './abstract.renderer';
 
 const defaultLayerProfile = {
@@ -17,16 +33,16 @@ export default class D3Renderer extends AbstractRenderer {
     this.parentDom.appendChild(svg);
 
     this.svg = this.root =
-      d3.select(svg)
+      select(svg)
       .attr('width', config.width)
       .attr('height', config.height);
 
     const g = this.svg.append('g');
     this.renderContext = this.svg
 
-    this.zoom = d3.zoom()
+    this.zoom = zoom()
       .on('zoom', () => {
-        this.svg.attr('transform', d3.event.transform);
+        this.svg.attr('transform', event.transform);
       });
 
     this.svg.append('rect')
@@ -51,7 +67,7 @@ export default class D3Renderer extends AbstractRenderer {
 
   updateLink(link, value) {
     if (link.dom) {
-      d3.select(link.dom)
+      select(link.dom)
         .attr('stroke-width', Math.abs(value))
         .attr('stroke', value < 0 ? '#FF0000' : '#000000');
     }
@@ -64,7 +80,7 @@ export default class D3Renderer extends AbstractRenderer {
       }
     });
 
-    const scale = d3.scaleOrdinal(d3.schemePastel1);
+    const colorScale = scaleOrdinal(schemeAccent)
     const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
 
     this.svg.append('g')
@@ -90,7 +106,7 @@ export default class D3Renderer extends AbstractRenderer {
       .attr('id', d => d.id)
       .join('.node')
       .call(function (d) {
-        d.each((elem, idx, all) => elem.dom = d3.select(all[idx]));
+        d.each((elem, idx, all) => elem.dom = select(all[idx]));
       });
 
     if (this.config.nodeRenderer) {
@@ -101,7 +117,7 @@ export default class D3Renderer extends AbstractRenderer {
     } else {
       node.append('circle')
         .attr('r', this.config.radius)
-        .attr('fill', d => scale(d.groupIndex))
+        .attr('fill', d => colorScale(d.groupIndex))
         .attr('stroke', '#000')
         .attr('stroke-width', '1px');
 

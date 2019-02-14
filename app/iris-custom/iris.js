@@ -1,5 +1,13 @@
 import * as tf from '@tensorflow/tfjs';
-import * as d3 from 'd3';
+
+import {
+  scaleOrdinal
+} from 'd3-scale';
+
+import {
+  schemeAccent
+} from 'd3-scale-chromatic';
+
 import ModelView from '../../src';
 
 import {
@@ -8,10 +16,9 @@ import {
   IRIS_DATA
 } from './data';
 
-
 const INPUTS = ['Sepal Length (Cm)', 'Sepal Width (Cm)', 'Petal Length (Cm)', 'Petal Width (Cm)'];
 
-const scale = d3.scaleOrdinal(d3.schemePastel2);
+const colorScale = scaleOrdinal(schemeAccent);
 
 async function trainModel(xTrain, yTrain, xTest, yTest) {
 
@@ -74,7 +81,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
         .attr('width', 20)
         .attr('height', 20)
         .attr('stroke', '#000')
-        .attr('fill', d => scale(d.groupIndex))
+        .attr('fill', d => colorScale(d.groupIndex))
         .attr('stroke-width', 1);
 
       node.append('text')
