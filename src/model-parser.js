@@ -41,7 +41,6 @@ async function parseModel(model, options) {
     parsed.layerMap[name] = currentLayer;
     parsed.layerArr.unshift(currentLayer);
 
-
     if (activation) {
       let className = activation.getClassName();
       currentLayer.activation = {
@@ -99,7 +98,7 @@ async function parseModel(model, options) {
   model.predict = (...args) => {
     const result = predict.apply(model, args);
     parsed.output = result.dataSync();
-    parserConfig.predictCallback(parsed);
+    parserConfig.predictCallback(args);
     return result;
   };
 

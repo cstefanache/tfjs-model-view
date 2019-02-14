@@ -25,6 +25,9 @@ const modelView = new ModelView(model, {
   /** node radius if no custom renderer is defined */            
   radius: 10,
 
+  /** distance between nodes */
+  nodesPadding: 0,
+
   /** prints layer names */                            
   printStats: true,
 
@@ -39,7 +42,7 @@ const modelView = new ModelView(model, {
 
   /** executed at initialization for each node. context d3 or canvas context */
   nodeRenderer: context => { ... },
-
+  
   
 
 })

@@ -3,6 +3,7 @@ import 'babel-polyfill';
 import runIrisCustom from './iris-custom/iris';
 import runIris from './iris/iris';
 import runMnist from './mnist/mnist';
+import runMnistConv from './mnist-conv/mnist';
 
 // import './samples/mnist';
 // import './samples/rnn-sample';
@@ -26,9 +27,14 @@ const samples = {
     executor: runIrisCustom
   },
   mnist: {
-    name: 'Mnist',
+    name: 'Mnist Dense',
     link: 'mnist',
     executor: runMnist
+  },
+  mnistc: {
+    name: 'Mnist Conv',
+    link: 'mnistc',
+    executor: runMnistConv
   }
 };
 
@@ -67,7 +73,6 @@ function getUrlParameter(name) {
 }
 const runner = samples[getUrlParameter('sample')];
 prepareMenu();
-console.log(runner);
 if (runner) {
   load(runner.executor);
 }

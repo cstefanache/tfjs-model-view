@@ -31,8 +31,8 @@ export default class ModelView {
 
     this.renderer = new RendererClass(this.element, config);
 
-    config.predictCallback = () => {
-      this.renderer.update(this.model);
+    config.predictCallback = input => {
+      this.renderer.update(this.model, input);
     }
 
     config.hookCallback = layer => {

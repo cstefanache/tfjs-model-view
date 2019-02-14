@@ -13,7 +13,6 @@ export default class D3Renderer {
         weights,
         values
       });
-
     }
 
     if (previousColumn && previousColumn.length > 0) {
@@ -23,7 +22,7 @@ export default class D3Renderer {
     }
   }
 
-  update(modelProfile) {
+  update(modelProfile, input) {
     if (!modelProfile) {
       return;
     }
@@ -32,8 +31,16 @@ export default class D3Renderer {
       model,
       output
     } = modelProfile;
-    this.updateGraph(model, output)
 
+    this.updateGraph(model, output);
+    modelProfile.model.renderData.nodes.forEach((node, index) => {
+
+      node.render(output[index]);
+    });
+
+    if (this.config.onPredict) {
+      this.config.onPredict(this.renderContext, modelProfile, input);
+    }
   }
 
   layerUpdate(layer) {
@@ -195,12 +202,16 @@ export default class D3Renderer {
     };
   }
 
-  initialize(modelProfile) {
+  initialize(modelProfile, renderNode) {
     const {
       layerMap,
       model,
       output
     } = modelProfile;
+
+    if (this.config.prepareRenderContext) {
+      this.config.prepareRenderContext(this.renderContext);
+    }
 
     this.groupIndex = 0;
     this.nodesMap = {};
@@ -212,11 +223,90 @@ export default class D3Renderer {
       values: output
     });
 
+    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
+    const layerConfig = {};
+    let startX = 0;
+    let maxX = 0;
+    let lastLayerIndex = 0;
+
+    nodes.forEach(node => {
+      const {
+        layerIndex
+      } = node;
+      const layer = modelProfile.layerArr[layerIndex - 1];
+      const {
+        shape: [_, w, h = 1, a = 1]
+      } = layer;
+      let config = layerConfig[layerIndex];
+      if (!config) {
+        config = {
+          ...this.config,
+          ...this.config.defaultLayer,
+          nodesCount: layerMap[node.layerName].renderData.nodes.length,
+          columns: h === 1 ? 1 : w,
+          rows: h,
+          depth: a,
+          radius: this.config.radius || 5,
+          layerPadding: this.config.layerPadding || 100,
+          nodesPadding: this.config.nodesPadding || 0,
+          depthPadding: this.config.depthPadding || 5,
+          ...(this.config.layer || {})[node.layerName]
+        }
+
+        if (!config.getLocation) {
+
+          if (lastLayerIndex !== node.layerIndex) {
+            lastLayerIndex = node.layerIndex;
+            startX = maxX + config.layerPadding;
+          }
+
+          config.getLocation = nd => {
+
+            let space = config.radius * 3 + config.nodesPadding;
+            let pixIndex = nd.indexInLayer % config.depth;
+            let cellIndex = Math.floor(nd.indexInLayer / config.depth);
+            let cellX = cellIndex % config.columns;
+            let cellY = Math.floor(cellIndex / config.columns);
+            let vPadding = (this.config.height - (config.depth * config.depthPadding + config.nodesCount / config.columns * space)) / 2;
+
+            let x = startX + cellX * space;
+            let y = vPadding + pixIndex * config.depthPadding + pixIndex * config.rows * space + cellY * space;
+
+            if (maxX < x) {
+              maxX = x;
+            }
+
+            return {
+              x,
+              y
+            };
+          }
+        }
+
+        if (!config.renderNode) {
+          config.renderNode = renderNode
+        }
+
+        layerConfig[layerIndex] = config;
+      }
+
+      node.render = value => {
+        config.renderNode(node, value, config);
+      }
+
+      Object.assign(node, config.getLocation(node));
+      node.render(0);
+    });
+
   }
 
-  updateNode(node, value) {}
-  updateBias(node) {}
-  updateLink(link, value) {}
+  updateNode(node, value) {
+    node.render(value);
+  }
 
-  renderNode(context) {}
+  updateBias() {}
+
+  updateLink() {}
+
+  renderNode() {}
 }

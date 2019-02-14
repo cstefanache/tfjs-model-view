@@ -4,9 +4,7 @@ import AbstractRenderer from './abstract.renderer';
 const defaultLayerProfile = {
   radius: 15,
   renderLinks: true,
-  layer: {
-
-  }
+  defaultLayer: {}
 }
 
 export default class D3Renderer extends AbstractRenderer {
@@ -24,10 +22,7 @@ export default class D3Renderer extends AbstractRenderer {
       .attr('height', config.height);
 
     const g = this.svg.append('g');
-
-    if (config.prepareRenderContext) {
-      config.prepareRenderContext(g);
-    }
+    this.renderContext = this.svg
 
     this.zoom = d3.zoom()
       .on('zoom', () => {
@@ -48,16 +43,6 @@ export default class D3Renderer extends AbstractRenderer {
     }
   }
 
-  updateNode(node, value) {
-    if (node.valueTextElement) {
-      node.valueTextElement.innerHTML = value ? value.toFixed(2) : 'N/A';
-    }
-
-    if (this.config.updateNode) {
-      this.config.updateNode(node, value);
-    }
-  }
-
   updateBias(node) {
     if (node.biasTextElement) {
       node.biasTextElement.innerHTML = node.bias.toFixed(2);
@@ -72,54 +57,25 @@ export default class D3Renderer extends AbstractRenderer {
     }
   }
 
-  update(model) {
-    if (this.config.onPredict) {
-      this.config.onPredict(this.svg, model);
-    }
-  }
-
   initialize(modelProfile) {
-    super.initialize(modelProfile);
-    const scale = d3.scaleOrdinal(d3.schemePastel1);
-    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
-
-    let startX = 0;
-    let maxX = 0;
-    let layerIndex = 0;
-    nodes.forEach(d => {
-      const layerConfig = {
-        columns: 1,
-        padding: 100,
-        radius: this.config.radius || 5,
-        ...this.config.layer[d.layerName]
-      }
-      if (layerIndex !== d.layerIndex) {
-        layerIndex = d.layerIndex;
-        startX = maxX + layerConfig.padding;
-      }
-      const height = Math.floor(this.columnSizes[d.layerIndex] / layerConfig.columns);
-      d.y = this.config.height / 2 - height * layerConfig.radius * 1.5 + Math.floor(d.indexInColumn / layerConfig.columns) * layerConfig.radius * 3;
-      d.x = startX + d.indexInLayer % layerConfig.columns * this.config.radius * 4;
-
-      if (maxX < d.x) {
-        maxX = d.x;
+    super.initialize(modelProfile, (d, value) => {
+      if (d.valueTextElement) {
+        d.valueTextElement.innerHTML = value ? value.toFixed(2) : 'N/A';
       }
     });
 
-    const simulation = this.simulation = d3.forceSimulation(nodes)
-    // .alpha(0.2)
-    // .force('link', d3.forceLink(this.links).id(d => d.id).strength(0.01))
-    // .force('charge', d3.forceManyBody().strength(0.5))
-    // .force("collide", d3.forceCollide(this.config.radius * 2))
-    // .force('x', d3.forceX().x(d => d.layerIndex * 100).strength(10))
-    // .force('y', d3.forceY().y(d => -this.columnSizes[d.layerIndex] * this.config.radius + d.indexInColumn * this.config.radius * 2).strength(0.5))
-    // .force("center", d3.forceCenter())
+    const scale = d3.scaleOrdinal(d3.schemePastel1);
+    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
 
-    const link = this.svg.append('g')
+    this.svg.append('g')
       .attr('stroke', '#000')
       .selectAll('line')
       .data(this.links)
       .join('line')
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y)
       .call(function (d) {
         d.each((elem, idx, all) => elem.dom = all[idx]);
       });
@@ -130,12 +86,12 @@ export default class D3Renderer extends AbstractRenderer {
       .enter()
       .append('g')
       .attr('class', 'node')
+      .attr('transform', d => `translate(${d.x}, ${d.y})`)
       .attr('id', d => d.id)
       .join('.node')
       .call(function (d) {
         d.each((elem, idx, all) => elem.dom = d3.select(all[idx]));
       });
-
 
     if (this.config.nodeRenderer) {
       this.config.nodeRenderer({
@@ -143,7 +99,6 @@ export default class D3Renderer extends AbstractRenderer {
         node
       });
     } else {
-
       node.append('circle')
         .attr('r', this.config.radius)
         .attr('fill', d => scale(d.groupIndex))
@@ -172,15 +127,5 @@ export default class D3Renderer extends AbstractRenderer {
           return d.value ? d.value.toFixed(2) : ''
         });
     }
-
-    simulation.on('tick', () => {
-      link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
-
-      node.attr('transform', d => `translate(${d.x}, ${d.y})`);
-    });
   }
 }

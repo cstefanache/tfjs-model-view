@@ -44,7 +44,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     radius: 15,
     prepareRenderContext: svg => {
       ['setosa', 'versicolor', 'virginica'].forEach((species, index) => {
-        svg
+        svg.select('g')
           .append('image')
           .attr('class', species)
           .attr('href', `https://raw.githubusercontent.com/cstefanache/cstefanache.github.io/master/media/img/${species}.png`)
@@ -77,11 +77,28 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
         .attr('fill', d => scale(d.groupIndex))
         .attr('stroke-width', 1);
 
-      node
-        .append('text')
-        .attr('font-size', 10)
-        .attr('x', -9)
-        .attr('y', 4);
+      node.append('text')
+        .attr('stroke', '#000')
+        .attr('stroke-width', 0.5)
+        .attr('font-size', 6)
+        .attr('text-anchor', 'middle')
+        .attr('alignment-baseline', 'middle')
+        .text(function (d) {
+          d.valueTextElement = this;
+          return d.value ? d.value.toFixed(2) : ''
+        });
+
+      node.append('text')
+        .attr('stroke', '#000')
+        .attr('transform', 'translate(0, -15)')
+        .attr('stroke-width', 0.5)
+        .attr('font-size', 6)
+        .attr('text-anchor', 'middle')
+        .attr('alignment-baseline', 'bottom')
+        .text(function (d) {
+          d.biasTextElement = this;
+          return d.value ? d.value.toFixed(2) : ''
+        });
 
       node
         .append('text')

@@ -32,7 +32,14 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
 
   /** Render model view */
   new ModelView(model, {
-    renderer: 'd3'
+    renderer: 'd3',
+    printStats: true,
+    layer: {
+      'dense_Dense1_input': {
+        nodesPadding: 30
+      }
+    }
+
   });
 
   await model.fit(xTrain, yTrain, {
