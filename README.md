@@ -52,6 +52,7 @@ const modelView = new ModelView(model, {
 ## Demos
 
 - [Movielens recommendation using Tensorflow.js](https://beta.observablehq.com/@cstefanache/movielens-recommendation-using-tensorflow-js)
+- [Iris Prediction with Custom Node Renderer](https://beta.observablehq.com/@cstefanache/tensorflow-js-model-viewer-iris)
 
 ## Installation
 
