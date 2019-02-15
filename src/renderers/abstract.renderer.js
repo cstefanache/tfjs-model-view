@@ -263,12 +263,11 @@ export default class D3Renderer {
           config.getLocation = nd => {
 
             let space = config.radius * 3 + config.nodesPadding;
-            let pixIndex = nd.indexInLayer % config.depth;
-            let cellIndex = Math.floor(nd.indexInLayer / config.depth);
+            let pixIndex = nd.indexInColumn % config.depth;
+            let cellIndex = Math.floor(nd.indexInColumn / config.depth);
             let cellX = cellIndex % config.columns;
             let cellY = Math.floor(cellIndex / config.columns);
-            let vPadding = (this.config.height - (config.depth * config.depthPadding + config.nodesCount / config.columns * space)) / 2;
-
+            let vPadding = (this.config.height - (config.depth * config.depthPadding + this.columnSizes[node.layerIndex] / config.columns * space)) / 2;
             let x = startX + cellX * space;
             let y = vPadding + pixIndex * config.depthPadding + pixIndex * config.rows * space + cellY * space;
 
@@ -294,7 +293,9 @@ export default class D3Renderer {
         config.renderNode(node, value, config);
       }
 
-      Object.assign(node, config.getLocation(node));
+      Object.assign(node, config.getLocation(node), {
+        radius: config.radius
+      });
       node.render(0);
     });
 

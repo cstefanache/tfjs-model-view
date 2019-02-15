@@ -4,22 +4,25 @@ import runIrisCustom from './iris-custom/iris';
 import runIris from './iris/iris';
 import runMnist from './mnist/mnist';
 import runMnistConv from './mnist-conv/mnist';
+import runTwoInputs from './multiple-inputs'
 
-// import './samples/mnist';
-// import './samples/rnn-sample';
-
-
-// import './samples/iris';
-// import './samples/two-inputs';
-// import './samples/curve-fitting';
-
-//
 
 const samples = {
+  twoinputs: {
+    name: 'Multiple Inputs',
+    link: 'twoinputs',
+    executor: runTwoInputs
+  },
   iris: {
     name: 'Iris',
     link: 'iris',
     executor: runIris
+  },
+  irisc: {
+    name: 'Iris Canvas',
+    link: 'irisc',
+    executor: runIris,
+    append: '&canvas=1'
   },
   customiris: {
     name: 'Iris with custom renderer',
@@ -48,7 +51,7 @@ function prepareMenu() {
 
   Object.values(samples).forEach(sample => {
     const menuItem = document.createElement('a');
-    menuItem.setAttribute('href', `http://localhost:4500?sample=${sample.link.toLowerCase()}`)
+    menuItem.setAttribute('href', `http://localhost:4500?sample=${sample.link.toLowerCase()}${sample.append ? sample.append : ''}`)
     menuItem.innerHTML = sample.name;
     menuItem.classList.add('menu-item')
     menuItem.addEventListener('click', () => {

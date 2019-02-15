@@ -25,6 +25,9 @@ const modelView = new ModelView(model, {
   /** node radius if no custom renderer is defined */            
   radius: 10,
 
+  /** By default d3 has property set to true and canvas is set to false */
+  renderLinks: false,
+
   /** distance between nodes */
   nodesPadding: 0,
 
@@ -43,7 +46,23 @@ const modelView = new ModelView(model, {
   /** executed at initialization for each node. context d3 or canvas context */
   nodeRenderer: context => { ... },
   
-  
+  /** can be used to define default layer parameters */
+  defaultLayer: {
+    /** used in Canvas renderer used to get the node fill style */
+    getFillStyle: (value, node) => { ... }
+  },
+
+  /** can be used to customize a single layer */
+  layer: {
+
+    /** layer name. layers will be printed on console if printStats: true. All properties defined above can be overridden for a single layer */
+    'dense_Dense1_input': {
+
+      /** sample modification of padding for the input layer */
+      layerPadding: 30
+      
+    }
+  }
 
 })
 ```
