@@ -53,6 +53,15 @@ export default async () => {
     printStats: true
   });
 
+  new ModelView(model, {
+    width: 300,
+    height: 250,
+    renderer: 'd3',
+    layerPadding: 40,
+    radius: 5,
+    printStats: true
+  });
+
 
 
 
