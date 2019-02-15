@@ -1,6 +1,6 @@
 {
   "name": "tfjs-model-view",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Tensorflow.JS model viewer",
   "main": "lib/tfjs-model-view.min.js",
   "scripts": {
