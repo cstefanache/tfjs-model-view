@@ -15,6 +15,7 @@ The library also aims to be flexible and make it easy for you to incorporate.
 - [Movielens recommendation using Tensorflow.js](https://beta.observablehq.com/@cstefanache/movielens-recommendation-using-tensorflow-js)
 - [Iris Prediction with Custom Node Renderer](https://beta.observablehq.com/@cstefanache/tensorflow-js-model-viewer-iris)
 - [MNIST Prediction](https://beta.observablehq.com/@cstefanache/mnist-tensorflow-js-network-view-tfjs-model-view)
+- [Multiple Input Rendering](https://beta.observablehq.com/@cstefanache/tensorflow-js-model-view-multiple-input-test)
 
 ## Sample rendering output
 
