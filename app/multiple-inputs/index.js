@@ -50,17 +50,22 @@ export default async () => {
     strokeStyle: 'rgb(125,125,160)',
     layerPadding: 40,
     radius: 5,
-    printStats: true
+    printStats: true,
+    layer: {
+      'dense_Dense4/dense_Dense4': {
+        columns: 2
+      }
+    }
   });
 
-  new ModelView(model, {
-    width: 300,
-    height: 250,
-    renderer: 'd3',
-    layerPadding: 40,
-    radius: 5,
-    printStats: true
-  });
+  // new ModelView(model, {
+  //   width: 300,
+  //   height: 250,
+  //   renderer: 'd3',
+  //   layerPadding: 40,
+  //   radius: 5,
+  //   printStats: true
+  // });
 
 
 

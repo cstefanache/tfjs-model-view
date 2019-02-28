@@ -35,13 +35,12 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
       printStats: true,
       width: 180,
       height: 220,
-      radius: 5,
-      layerPadding: 60,
+      layerPadding: 40,
       renderer: 'canvas',
       renderLinks: true,
       layer: {
         'dense_Dense1_input': {
-          layerPadding: 30
+          layerPadding: 20
         }
       },
       prepareRenderContext: ctx => {
@@ -52,6 +51,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
         ctx.fillText('Output', 130, 70);
       },
       defaultLayer: {
+        nodeSize: 5,
         getFillStyle: (value, node) => {
           const {
             layerIndex

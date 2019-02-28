@@ -13,7 +13,7 @@ async function parseModel(model, options) {
     ...options
   }
 
-  function parseLayer(layer, nextColumn) {
+  async function parseLayer(layer, nextColumn) {
 
     const {
       name,
@@ -23,13 +23,17 @@ async function parseModel(model, options) {
       sourceLayer
     } = layer;
 
+    if (parsed.layerMap[name]) {
+      return parsed.layerMap[name];
+    }
+
     const {
       getWeights,
       setCallHook,
       activation
     } = sourceLayer || {};
 
-    const currentLayer = {
+    let currentLayer = {
       previousColumn: [],
       name,
       shape,
@@ -79,11 +83,11 @@ async function parseModel(model, options) {
     }
 
     if (inputs) {
-      inputs.forEach(inp => {
-        parseLayer(inp, currentLayer.previousColumn);
+      inputs.forEach(async inp => {
+        await parseLayer(inp, currentLayer.previousColumn);
       })
     } else {
-      parseLayer(input, currentLayer.previousColumn);
+      await parseLayer(input, currentLayer.previousColumn);
     }
 
     if (nextColumn) {
@@ -95,14 +99,20 @@ async function parseModel(model, options) {
 
   const predict = model.predict;
 
-  model.predict = (...args) => {
-    const result = predict.apply(model, args);
+  model.predict = async (...args) => {
+    const result = await predict.apply(model, args);
     parsed.output = result.dataSync();
     parserConfig.predictCallback(args);
     return result;
   };
 
-  parsed.model = await parseLayer(model.layers[model.layers.length - 1].output);
+  const syntheticOutput = {
+    name: 'synthetic',
+    inputs: model.outputs,
+    shape: [null, 1]
+  };
+
+  parsed.model = await parseLayer(syntheticOutput);
 
   if (options.printStats) {
     const {
@@ -113,6 +123,7 @@ async function parseModel(model, options) {
       console.log(`Layer: ${layer.name}`);
     });
   }
+
 
   return parsed;
 }

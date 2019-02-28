@@ -4,7 +4,6 @@ import defaultConfig from './default.config';
 import rendererMap from './renderers';
 
 export default class ModelView {
-
   constructor(model, customConfig) {
 
     if (!model) {
@@ -28,7 +27,6 @@ export default class ModelView {
     if (config.appendImmediately) {
       document.body.appendChild(this.element);
     }
-
     this.renderer = new RendererClass(this.element, config);
 
     config.predictCallback = input => {

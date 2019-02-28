@@ -1,205 +1,147 @@
-export default class D3Renderer {
+import {
+  LazyIterator
+} from "@tensorflow/tfjs-data/dist/iterators/lazy_iterator";
 
-  updateGraph(layer, values) {
-    const {
-      activations,
-      weights,
-      renderData,
-      previousColumn
-    } = layer;
+const defaultConfig = {
+  nodeSpacing: 2,
+  nodeSize: 2,
+  layerSpacing: 10,
+  prepareNode: (node, config) => {}
+}
 
-    if (renderData && renderData.updatePrevious) {
-      layer.renderData.updatePrevious({
-        weights,
-        values
-      });
+export default class AbstractRenderer {
+
+  constructor(parentDOM, config) {
+
+    this.parentDOM = parentDOM;
+
+    this.config = {
+      ...defaultConfig,
+      ...config
     }
 
-    if (previousColumn && previousColumn.length > 0) {
-      previousColumn.forEach(column => {
-        this.updateGraph(column, activations);
-      });
+    this.layerConfig = {};
+
+    this.nodes = [];
+    this.links = [];
+  }
+
+  locationFnProvider(config) {
+    return (startX, nd) => {
+      let padding = config.nodeSize * 2 + config.nodeSpacing;
+      let xLoc = nd.indexInLayer / config.depth % config.columns;
+      let yLoc = Math.floor(nd.indexInLayer / config.columns);
+      const dif = (this.config.height - Math.floor(config.nodesCount / config.columns) * padding) / 2;
+      nd.x = startX + xLoc * padding;
+      nd.y = dif + yLoc * padding
     }
   }
 
-  update(modelProfile, input) {
-    if (!modelProfile) {
-      return;
-    }
-
-    const {
-      model,
-      output
-    } = modelProfile;
-
-    this.updateGraph(model, output);
-    modelProfile.model.renderData.nodes.forEach((node, index) => {
-
-      node.render(output[index]);
-    });
-
-    if (this.config.onPredict) {
-      this.config.onPredict(this.renderContext, modelProfile, input);
-    }
-  }
-
-  layerUpdate(layer) {
-    const {
-      activations,
-      weights,
-      renderData
-    } = layer;
-    if (renderData && renderData.updatePrevious) {
-      layer.renderData.updatePrevious({
-        weights,
-        previousValues: activations
-      });
-    }
-  }
-
-  parseLayer(model, options = {}) {
+  parseLayer(model, config) {
     const {
       shape,
       name,
-      weights,
-      activations,
       previousColumn
     } = model;
-    const groupIndex = this.groupIndex++;
+
+    this.layerConfig = {
+
+    };
+
     const {
-      values,
-      rightsideNodes,
-      rightsideWeights,
       layerIndex,
-      offset,
-      line
-    } = options;
+      rightsideModel,
+      renderNode
+    } = config;
 
-    const nodes = [];
-    const links = [];
-    const [noop, w, h = 1, d = 1] = shape;
+    if (!model.visited) {
+      model.visited = true;
 
-    const biases = rightsideWeights && rightsideWeights['1'] ? rightsideWeights['1'].values : undefined;
-    const column = this.columnSizes[layerIndex];
-    if (!column) {
-      this.columnSizes[layerIndex] = 0;
-    }
-    for (let i = 0; i < w * h * d; i++) {
-      const id = `${name}-node-${i}`;
-      let node = {
-        id,
-        layerName: name,
-        groupIndex,
-        layerIndex,
-        indexInLayer: nodes.length,
-        indexInColumn: this.columnSizes[layerIndex],
-        value: values ? values[i] : undefined,
-        bias: biases ? biases[i] : '',
-        line: line || 0
-      };
+      const nodes = [];
+      const links = [];
+      const [noop, w, h = 1, d = 1] = shape;
+      for (let i = 0; i < w * h * d; i++) {
+        const id = `${name}-node-${i}`;
+        let node = {
+          id,
+          layerIndex,
+          layerName: name,
+          model
+        };
 
-      this.columnSizes[layerIndex]++;
-
-      this.nodesMap[id] = node;
-      nodes.push(node);
-    }
-
-    let previousNodes = [];
-    let previousLinks = [];
-
-    if (previousColumn && previousColumn.length > 0) {
-      let localOffset = 0;
-      previousColumn.forEach((prevLayer, lineIndex) => {
-        const {
-          nodes: prevNodes,
-          links: prevLinks
-        } = this.parseLayer(prevLayer, {
-          layerIndex: layerIndex - 1,
-          rightsideNodes: nodes,
-          rightsideWeights: weights,
-          values: activations,
-          offset: localOffset,
-          line: lineIndex
+        const layerConfig = this.getLayerConfig(node, renderNode, {
+          w,
+          h,
+          d
         });
-        localOffset += prevNodes.length;
-        previousNodes = previousNodes.concat(prevNodes);
-        previousLinks = previousLinks.concat(prevLinks);
+        node.indexInLayer = layerConfig.nodesCount;
+        layerConfig.nodesCount++;
+        node.config = layerConfig;
+        node.render = forceValues => {
+          layerConfig.renderNode(node, forceValues);
+        }
+        nodes.push(node);
+        this.nodes.push(node);
+      }
+
+      Object.assign(model, {
+        nodes,
+        links,
+        rightsideModel
       });
     }
 
-    if (this.config.renderLinks) {
-      if (rightsideWeights) {
-        const {
-          2: rightsideKernels
-        } = rightsideWeights;
+    if (previousColumn) {
+      previousColumn.forEach(layer => {
+        this.parseLayer(layer, {
+          rightsideModel: model,
+          layerIndex: layerIndex - 1,
+          renderNode
+        });
+      });
+    }
+  }
 
-        rightsideNodes.forEach((rightsideNode, rightNodeIndex) => {
-          nodes.forEach((node, nodeIndex) => {
-            if (rightsideKernels || rightNodeIndex === nodeIndex + offset) {
-              const link = {
-                id: this.links.length,
-                source: node,
-                target: rightsideNode,
-                weight: rightsideKernels ? rightsideKernels.values[nodeIndex * rightNodeIndex] : 1
-              }
-              this.links.push(link);
-              links.push(link);
-            }
-          });
-        })
+  getLayerConfig(node, renderNode, shape) {
+    const {
+      layerIndex
+    } = node;
+
+    const {
+      w,
+      h: rows,
+      d: depth
+    } = shape;
+
+    let config = this.layerConfig[layerIndex];
+    if (!config) {
+      const {
+        defaultLayer,
+        layer
+      } = this.config;
+
+      let custom;
+
+      if (layer) {
+        custom = layer[node.layerName]
       }
+
+      config = {
+        ...defaultConfig,
+        ...defaultLayer,
+        renderNode,
+        nodesCount: 0,
+        columns: rows === 1 ? 1 : w,
+        rows,
+        depth,
+        ...custom
+      }
+
+      config.move = config.move || this.locationFnProvider(config);
+      this.layerConfig[layerIndex] = config;
     }
 
-    model.renderData = {
-      nodes,
-      updatePrevious: updateData => {
-        const {
-          previousValues: updatePreviousValues,
-          weights: updateWeights,
-          values: updateValues
-        } = updateData;
-        const {
-          1: updateBiases,
-          2: updateKernels
-        } = updateWeights;
-
-        if (updateBiases) {
-          nodes.forEach((localNode, index) => {
-            localNode.bias = updateBiases.values[index];
-            this.updateBias(localNode)
-          });
-        }
-
-        if (updateKernels) {
-          previousLinks.forEach((prevLink, index) => {
-            this.updateLink(prevLink, updateKernels.values[index]);
-          });
-        }
-
-        if (updatePreviousValues) {
-          previousNodes.forEach((prevNode, index) => {
-            this.updateNode(prevNode, updatePreviousValues[index])
-          });
-        }
-
-        if (updateValues) {
-          nodes.forEach((localNode, index) => {
-            this.updateNode(localNode, updateValues[index]);
-          });
-        }
-
-        if (updateKernels) {
-          previousLinks.forEach((prevLink, index) => {
-            prevLink.weight = updateKernels.values[index];
-          });
-        }
-      }
-    }
-
-    return {
-      nodes,
-      links
-    };
+    return config;
   }
 
   initialize(modelProfile, renderNode) {
@@ -213,101 +155,77 @@ export default class D3Renderer {
       this.config.prepareRenderContext(this.renderContext);
     }
 
-    this.groupIndex = 0;
-    this.nodesMap = {};
-    this.columnSizes = {};
-    this.links = [];
-    const size = Object.keys(layerMap).length;
+    this.modelProfile = modelProfile;
+
+    const layers = Object.values(layerMap);
+
     this.parseLayer(model, {
-      layerIndex: size,
-      values: output
+      layerIndex: layers.length,
+      renderNode
     });
 
-    const nodes = Object.values(this.nodesMap).sort((a, b) => a.layerIndex - b.layerIndex);
-    const layerConfig = {};
-    let startX = 0;
+    this.nodes.sort((a, b) => a.layerIndex - b.layerIndex);
+
+    this.nodes.forEach(nd => {
+      const {
+        config
+      } = nd;
+      const {
+        prepareNode: prepare
+      } = config;
+
+      prepare(nd, config);
+    });
+
+    this.calculatePosition();
+    this.renderPass();
+  }
+
+  calculatePosition() {
+    console.log('calculating position...');
     let maxX = 0;
-    let lastLayerIndex = 0;
-
-    nodes.forEach(node => {
-      const {
-        layerIndex
-      } = node;
-      const layer = modelProfile.layerArr[layerIndex - 1];
-      const {
-        shape: [_, w, h = 1, a = 1]
-      } = layer;
-      let config = layerConfig[layerIndex];
-      if (!config) {
-        config = {
-          ...this.config,
-          ...this.config.defaultLayer,
-          nodesCount: layerMap[node.layerName].renderData.nodes.length,
-          columns: h === 1 ? 1 : w,
-          rows: h,
-          depth: a,
-          radius: this.config.radius || 5,
-          layerPadding: this.config.layerPadding || 100,
-          nodesPadding: this.config.nodesPadding || 0,
-          depthPadding: this.config.depthPadding || 5,
-          ...(this.config.layer || {})[node.layerName]
-        }
-
-        if (!config.getLocation) {
-
-          if (lastLayerIndex !== node.layerIndex) {
-            lastLayerIndex = node.layerIndex;
-            startX = maxX + config.layerPadding;
-          }
-
-          config.getLocation = nd => {
-
-            let space = config.radius * 3 + config.nodesPadding;
-            let pixIndex = nd.indexInColumn % config.depth;
-            let cellIndex = Math.floor(nd.indexInColumn / config.depth);
-            let cellX = cellIndex % config.columns;
-            let cellY = Math.floor(cellIndex / config.columns);
-            let vPadding = (this.config.height - (config.depth * config.depthPadding + this.columnSizes[node.layerIndex] / config.columns * space)) / 2;
-            let x = startX + cellX * space;
-            let y = vPadding + pixIndex * config.depthPadding + pixIndex * config.rows * space + cellY * space;
-
-            if (maxX < x) {
-              maxX = x;
-            }
-
-            return {
-              x,
-              y
-            };
-          }
-        }
-
-        if (!config.renderNode) {
-          config.renderNode = renderNode
-        }
-
-        layerConfig[layerIndex] = config;
+    let lastMaxX = 0;
+    let lastLayer = -1;
+    this.nodes.forEach((nd, index) => {
+      if (lastLayer !== nd.layerIndex) {
+        lastMaxX = maxX += this.config.layerPadding;
+        lastLayer = nd.layerIndex;
       }
+      nd.config.move(lastMaxX, nd);
+      maxX = Math.max(maxX, nd.x);
 
-      node.render = value => {
-        config.renderNode(node, value, config);
-      }
-
-      Object.assign(node, config.getLocation(node), {
-        radius: config.radius
-      });
-      node.render(0);
     });
-
   }
 
-  updateNode(node, value) {
-    node.render(value);
+  renderPass() {
+    console.log('rendering...');
+    this.nodes.forEach((nd, index) => {
+      nd.render();
+    });
   }
 
-  updateBias() {}
+  setRenderContext(context) {
+    this.renderContext = context;
+  }
 
-  updateLink() {}
+  layerUpdate(layer) {
+    layer.nodes.forEach(node => node.render());
+  }
 
-  renderNode() {}
+  update(model, input) {
+    const {
+      output
+    } = model;
+    console.log(output);
+    let inputLayers = model.layerArr.filter(layer => layer.previousColumn.length === 0);
+    inputLayers.forEach((layer, index) => {
+      layer.nodes.forEach(node => node.render(input[index].dataSync()));
+    })
+
+    model.layerArr.forEach(layer => {
+      if (inputLayers.indexOf(layer) === -1) {
+        layer.nodes.forEach(node => node.render());
+      }
+    });
+  }
 }

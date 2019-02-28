@@ -41,6 +41,7 @@ export default async () => {
     width: 460,
     height: 400,
     nodesPadding: 1,
+    printStats: true,
     prepareRenderContext: ctx => {
       renderContext = ctx;
       ctx.fillStyle = '#fff';
@@ -72,7 +73,10 @@ export default async () => {
     },
     layer: {
       'dense_1_input': {
-        columns: 28
+        columns: 28,
+        nodeSize: 2,
+        nodeSpacing: 0,
+        getStrokeStyle: () => 'rgb(25,25,25)'
       },
       'dense_1/dense_1': {
         columns: 8
@@ -89,17 +93,21 @@ export default async () => {
       'dense_3/dense_3': {
         columns: 1,
         layerPadding: 30,
-        radius: 4,
-        getFillStyle: value => `rgba(255, 255, 255, ${ value * 255})`
+        nodeSize: 10,
+        getFillStyle: value => {
+          console.log(value);
+          return `rgba(255, 255, 255, ${ value * 255})`
+        }
       }
     }
   });
 
 
   const predict = async () => {
-    await model.predict(tf.tensor([
+    const predictedValue = await model.predict(tf.tensor([
       test[Math.floor(Math.random() * test.length)].slice(1)
     ]));
+    console.log(predictedValue.dataSync());
   };
 
   setTimeout(async () => {
