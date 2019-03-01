@@ -38,14 +38,14 @@ export default async () => {
   let renderContext;
   const model = await tf.loadModel('http://localhost:4500/static/mnist-dense/model.json');
   const modelView = new ModelView(model, {
-    width: 460,
-    height: 400,
+    width: 500,
+    height: 500,
     nodesPadding: 1,
     printStats: true,
     prepareRenderContext: ctx => {
       renderContext = ctx;
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0,0,460,400);
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, 460, 400);
     },
     renderNode: (d, val) => {
       renderContext.strokeStyle = renderContext.fillStyle = `rgb(200, 200, 200)`;
@@ -66,7 +66,7 @@ export default async () => {
           context.fillRect(370, 140, 100, 100);
           context.fillStyle = 'white';
           context.font = '90px Arial';
-         context.fillText(index, 385, 220);
+          context.fillText(index, 385, 220);
         }
       })
 
@@ -75,17 +75,24 @@ export default async () => {
       'dense_1_input': {
         columns: 28,
         nodeSize: 2,
-        nodeSpacing: 0,
-        getStrokeStyle: () => 'rgb(25,25,25)'
+        nodeSpacing: 1,
+        getStrokeStyle: () => 'rgb(125,125,125)'
       },
       'dense_1/dense_1': {
-        columns: 8
+        columns: 8,
+        depth: 4,
+        nodeSize: 1,
+        nodeSpacing: 0,
+        depthSpacing: 4
       },
       'dropout_1/dropout_1': {
-        columns: 8
+        columns: 8,
+        nodeSpacing: 0
       },
       'dense_2/dense_2': {
-        columns: 8
+        columns: 8,
+        nodeSize: 1,
+        depth: 4
       },
       'dropout_2/dropout_2': {
         columns: 8
@@ -95,7 +102,6 @@ export default async () => {
         layerPadding: 30,
         nodeSize: 10,
         getFillStyle: value => {
-          console.log(value);
           return `rgba(255, 255, 255, ${ value * 255})`
         }
       }
@@ -107,7 +113,7 @@ export default async () => {
     const predictedValue = await model.predict(tf.tensor([
       test[Math.floor(Math.random() * test.length)].slice(1)
     ]));
-    console.log(predictedValue.dataSync());
+    //console.log(predictedValue.dataSync());
   };
 
   setTimeout(async () => {

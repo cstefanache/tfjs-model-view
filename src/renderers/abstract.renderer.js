@@ -6,6 +6,7 @@ const defaultConfig = {
   nodeSpacing: 2,
   nodeSize: 2,
   layerSpacing: 10,
+  depthSpacing: 10,
   prepareNode: (node, config) => {}
 }
 
@@ -27,13 +28,31 @@ export default class AbstractRenderer {
   }
 
   locationFnProvider(config) {
+    let nodesInDepthHeight, requiredNodeSize, dif;
+
     return (startX, nd) => {
+      if (!nodesInDepthHeight) {
+        nodesInDepthHeight = Math.ceil(config.nodesCount / config.columns / config.depth)
+        requiredNodeSize = config.nodeSize * 2 + config.nodeSpacing;
+        dif = (this.config.height - Math.floor(config.nodesCount / config.columns) * requiredNodeSize - Math.floor(config.depth * config.depthSpacing)) / 2;
+      }
+      let currentDepthCluster = nd.indexInLayer % config.depth;
+      let depthY = currentDepthCluster * (nodesInDepthHeight * requiredNodeSize + config.depthSpacing);
+      let yLoc = Math.floor(nd.indexInLayer / config.depth) % nodesInDepthHeight;
+      let xLoc = Math.floor(nd.indexInLayer / config.depth / nodesInDepthHeight);
+      /*
+      let rows = config.nodesCount / config.depth / config.columns;
+      let yIndex = Math.floor(nd.indexInLayer / config.depth);
       let padding = config.nodeSize * 2 + config.nodeSpacing;
       let xLoc = nd.indexInLayer / config.depth % config.columns;
-      let yLoc = Math.floor(nd.indexInLayer / config.columns);
-      const dif = (this.config.height - Math.floor(config.nodesCount / config.columns) * padding) / 2;
+
+
       nd.x = startX + xLoc * padding;
-      nd.y = dif + yLoc * padding
+      nd.y = dif + yLoc
+      */
+
+      nd.x = startX + xLoc * requiredNodeSize;
+      nd.y = dif + depthY + yLoc * requiredNodeSize;
     }
   }
 
@@ -78,7 +97,9 @@ export default class AbstractRenderer {
         layerConfig.nodesCount++;
         node.config = layerConfig;
         node.render = forceValues => {
-          layerConfig.renderNode(node, forceValues);
+          layerConfig.renderNode(node, forceValues, {
+            context: this.renderContext
+          });
         }
         nodes.push(node);
         this.nodes.push(node);
@@ -182,7 +203,6 @@ export default class AbstractRenderer {
   }
 
   calculatePosition() {
-    console.log('calculating position...');
     let maxX = 0;
     let lastMaxX = 0;
     let lastLayer = -1;
@@ -198,10 +218,13 @@ export default class AbstractRenderer {
   }
 
   renderPass() {
-    console.log('rendering...');
+    let startTime = performance.now();
     this.nodes.forEach((nd, index) => {
-      nd.render();
+      if (index < 10000) {
+        nd.render();
+      }
     });
+    console.log(`Render duration: ${performance.now() - startTime}`);
   }
 
   setRenderContext(context) {
@@ -209,23 +232,32 @@ export default class AbstractRenderer {
   }
 
   layerUpdate(layer) {
-    layer.nodes.forEach(node => node.render());
+    // let startTime = performance.now();
+    // layer.nodes.forEach((node, index) => {
+    //   if (index < 1000) {
+    //     node.render()
+    //   }
+    // });
+    // console.log(`${layer.name}: ${layer.nodes.length} nodes render duration: ${performance.now() - startTime}`);
   }
 
   update(model, input) {
-    const {
-      output
-    } = model;
-    console.log(output);
-    let inputLayers = model.layerArr.filter(layer => layer.previousColumn.length === 0);
-    inputLayers.forEach((layer, index) => {
-      layer.nodes.forEach(node => node.render(input[index].dataSync()));
-    })
+    // const {
+    //   output
+    // } = model;
+    // let inputLayers = model.layerArr.filter(layer => layer.previousColumn.length === 0);
+    // inputLayers.forEach((layer, index) => {
+    //   layer.nodes.forEach(node => node.render(input[index].dataSync()));
+    // })
 
-    model.layerArr.forEach(layer => {
-      if (inputLayers.indexOf(layer) === -1) {
-        layer.nodes.forEach(node => node.render());
-      }
-    });
+    // model.layerArr.forEach(layer => {
+    //   if (inputLayers.indexOf(layer) === -1) {
+    //     layer.nodes.forEach((node, index) => {
+    //       if (index < 1000) {
+    //         node.render()
+    //       }
+    //     });
+    //   }
+    // });
   }
 }

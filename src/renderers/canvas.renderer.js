@@ -15,7 +15,7 @@ const defaultLayerProfile = {
   renderLinks: false,
   layerPadding: 20,
   defaultLayer: {
-    getStrokeStyle: (value, node) => colorScale(node.groupIndex),
+    getStrokeStyle: (value, node) => colorScale(node.layerIndex),
     getFillStyle: value => `rgba(255, 255, 255, ${value / 255})`
   }
 }
@@ -42,7 +42,9 @@ export default class CanvasRenderer extends AbstractRenderer {
     canvas.setAttribute('width', width);
     canvas.setAttribute('height', height);
 
-    let ctx = canvas.getContext('2d');
+    let ctx = canvas.getContext('2d', {
+      alpha: false
+    });
     this.setRenderContext(ctx);
 
     ctx.beginPath();
@@ -60,11 +62,11 @@ export default class CanvasRenderer extends AbstractRenderer {
 
       let source = forceValues || d.model.activations
       let value = source ? source[d.indexInLayer] : 0;
-      this.renderContext.strokeStyle = this.renderContext.fillStyle = `#000`;
-      this.renderContext.beginPath();
-      this.renderContext.arc(d.x, d.y, config.nodeSize, 0, 2 * Math.PI);
-      this.renderContext.fill();
-      this.renderContext.stroke();
+      // this.renderContext.strokeStyle = this.renderContext.fillStyle = `#000`;
+      // this.renderContext.beginPath();
+      // this.renderContext.arc(d.x, d.y, config.nodeSize, 0, 2 * Math.PI);
+      // this.renderContext.fill();
+      // this.renderContext.stroke();
 
       this.renderContext.strokeStyle = config.getStrokeStyle(value, d);
       this.renderContext.fillStyle = config.getFillStyle(value, d);

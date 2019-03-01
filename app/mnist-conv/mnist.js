@@ -10,23 +10,14 @@ export default async () => {
     printStats: true,
     width: 1500,
     height: 10000,
-    radius: 0.5,
-    prepareRenderContext: context => {
-      ctx = context
-
-    },
-    renderNode: (node, value) => {
-      ctx.fillStyle = "rgba(" + 255 + "," + 255 + "," + 255 + "," + value + ")";
-      ctx.fillRect(node.x, node.y, 1, 1);
-    }
   });
 
-  setTimeout(async () => {
-    let randomData = tf.randomNormal([1, 100]).dataSync();
-    const res = await model.predict([tf.tensor([randomData]), tf.tensor([
-      [5]
-    ])]);
-  }, 1000)
+  // setTimeout(async () => {
+  //   let randomData = tf.randomNormal([1, 100]).dataSync();
+  //   const res = await model.predict([tf.tensor([randomData]), tf.tensor([
+  //     [5]
+  //   ])]);
+  // }, 100)
 
 
   //const res = await model.predict(tf.tensor([randomData, [0]]));
