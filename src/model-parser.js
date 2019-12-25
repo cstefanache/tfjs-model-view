@@ -1,4 +1,4 @@
-function noop() {}
+function noop() { }
 
 async function parseModel(model, options) {
 
@@ -51,7 +51,10 @@ async function parseModel(model, options) {
     if (setCallHook) {
       sourceLayer.setCallHook(async layerInput => {
         currentLayer.getWeights();
-        currentLayer.activations = await layerInput[0].dataSync();
+        currentLayer.activations = []
+        for (let i = 0; i < layerInput.length; i++) {
+          currentLayer.activations.push(await layerInput[i].dataSync())
+        }
         parserConfig.hookCallback(currentLayer);
       });
     }
@@ -97,7 +100,7 @@ async function parseModel(model, options) {
 
   model.predict = (...args) => {
     const result = predict.apply(model, args);
-    parsed.output = result.dataSync();
+    model.outputData = result.dataSync();
     parserConfig.predictCallback(args);
     return result;
   };

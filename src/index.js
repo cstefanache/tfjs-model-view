@@ -1,52 +1,28 @@
-import 'babel-polyfill';
 import parseModel from './model-parser';
+import CanvasRenderer from './renderers/canvas.renderer';
 import defaultConfig from './default.config';
-import rendererMap from './renderers';
 
 export default class ModelView {
 
-  constructor(model, customConfig) {
+    constructor(model, customConfig) {
+        const config = Object.assign({}, defaultConfig, customConfig);
 
-    if (!model) {
-      throw new Error('please provide a tensorflow.js model');
+        let renderer;
+
+        config.predictCallback = input => {
+            if (renderer) {
+                renderer.update(model, input);
+            }
+        }
+
+        config.hookCallback = layer => {
+            if (renderer) {
+                renderer.render(layer)
+            }
+        }
+
+        parseModel(model, config).then(res => {
+            renderer = new CanvasRenderer(config, res);
+        })
     }
-
-    const config = {
-      ...defaultConfig,
-      ...customConfig
-    };
-
-    this.config = config;
-
-    const RendererClass = rendererMap[config.renderer];
-    if (!RendererClass) {
-      throw new Error(`Missing renderer: ${config.renderer}. Options: [d3, canvas]`);
-    }
-
-    this.element = document.createElement(config.tag);
-
-    if (config.appendImmediately) {
-      document.body.appendChild(this.element);
-    }
-
-    this.renderer = new RendererClass(this.element, config);
-
-    config.predictCallback = input => {
-      this.renderer.update(this.model, input);
-    }
-
-    config.hookCallback = layer => {
-      this.renderer.layerUpdate(layer);
-    }
-
-    (async () => {
-      this.model = await parseModel(model, config);
-      this.renderer.initialize(this.model);
-    })();
-  }
-
-  getDOMElement() {
-    return this.element;
-  }
-
 }

@@ -1,83 +1,61 @@
 import AbstractRenderer from './abstract.renderer';
-import {
-  scaleOrdinal
-} from 'd3-scale';
 
-import {
-  schemeAccent
-} from 'd3-scale-chromatic';
-
-const defaultLayerProfile = {
-  radius: 2,
-  strokeStyle: '#808080',
-  renderLinks: false,
-  layerPadding: 20,
-  defaultLayer: {
-    getFillStyle: value => `rgba(255, 255, 255, ${value / 255})`
-  }
-}
 export default class CanvasRenderer extends AbstractRenderer {
+    constructor(config, initData) {
+        super(config, initData);
+        const canvas = document.createElement('canvas');
 
-  constructor(parentDom, config) {
+        canvas.setAttribute('width', this.width);
+        canvas.setAttribute('height', this.height);
+        document.body.appendChild(canvas);
 
-    super(parentDom, config);
-
-    const {
-      width,
-      height
-    } = config;
-    const canvas = document.createElement('canvas');
-    parentDom.appendChild(canvas);
-
-    canvas.setAttribute('width', width);
-    canvas.setAttribute('height', height);
-
-    let ctx = this.renderContext = canvas.getContext('2d');
-
-    ctx.beginPath();
-    ctx.rect(0, 0, width, height);
-    ctx.fillStyle = '#000';
-    ctx.fill();
-
-    this.config = {
-      ...defaultLayerProfile,
-      ...config
-    }
-  }
-
-  initialize(modelProfile) {
-    const colorScale = scaleOrdinal(schemeAccent);
-
-    super.initialize(modelProfile, (d, value, config) => {
-      this.renderContext.strokeStyle = this.renderContext.fillStyle = `#000`;
-      this.renderContext.beginPath();
-      this.renderContext.arc(d.x, d.y, config.radius, 0, 2 * Math.PI);
-      this.renderContext.fill();
-      this.renderContext.stroke();
-      this.renderContext.strokeStyle = colorScale(d.groupIndex);
-      this.renderContext.fillStyle = config.getFillStyle(value, d);
-      this.renderContext.beginPath();
-      this.renderContext.arc(d.x, d.y, config.radius, 0, 2 * Math.PI);
-      this.renderContext.stroke();
-      this.renderContext.fill();
-    });
-
-    if (this.config.renderLinks) {
-      this.renderContext.strokeStyle = this.config.strokeStyle;
-      this.links.forEach(link => {
-        const {
-          source,
-          target
-        } = link;
-        this.renderContext.beginPath();
-        this.renderContext.moveTo(source.x + source.radius, source.y);
-        this.renderContext.lineTo(target.x - target.radius, target.y);
-        this.renderContext.stroke();
-      })
-
-
+        this.renderContext = canvas.getContext('2d')
+        this.renderElement = canvas;
     }
 
-  }
+    update(model, input) {
+        const inputs = Object.keys(this.layers).filter(name => name.indexOf('_input') !== -1);
 
+        if (inputs.length !== input.length) {
+            throw new Error(`identified 2 input layers: ${inputs.join(',')} and had only ${input.length} input values`);
+        }
+
+        inputs.forEach((name, index) => {
+            this.render({ name }, input[index].dataSync());
+        });
+
+        this.render(this.outputLayer, model.outputData);
+    }
+
+    render(layer, activations, outputData) {
+        const { name, previousColumn } = layer;
+        if (activations || outputData) {
+            const vals = activations || outputData
+            const { height } = this;
+
+            try {
+                const { x, layerWidth, radius, nodes, layerHeight, domainMax } = this.layers[name];
+                const sy = Math.floor((height - layerHeight) / 2);
+                this.renderContext.clearRect(x - radius / 2 - 2, 0, layerWidth + 2, height);
+
+                nodes.forEach((node, index) => {
+                    const { x: nx, y: ny } = node;
+                    this.renderContext.strokeStyle = '#000';
+                    this.renderContext.fillStyle = `rgba(0,0,0, ${vals[index] / domainMax})`
+                    this.renderContext.beginPath();
+                    this.renderContext.arc(nx, sy + ny, radius / 2, 0, 2 * Math.PI)
+                    if (radius > 3) {
+                        this.renderContext.stroke();
+                    }
+                    this.renderContext.fill();
+                });
+            } catch (err) {
+                debugger
+            }
+        } else if (previousColumn && previousColumn.length > 0 && layer.activations) {
+            for (let i = 0; i < layer.previousColumn.length; i++) {
+                this.render(layer.previousColumn[i], layer.activations[i])
+            }
+        }
+    }
 }

@@ -3,25 +3,26 @@ import * as tf from '@tensorflow/tfjs';
 import ModelView from '../../src';
 
 export default async () => {
+  const height = 1260;
   const model = await tf.loadModel('https://gitcdn.link/repo/cstefanache/cstefanache.github.io/master/models/mnistconv/mnist-conv.json')
   const modelView = new ModelView(model, {
-    printStats: true,
-    width: 600,
-    height: 700,
+    radius: 5,
+    nodePadding: 0,
     layer: {
-      'flatten_Flatten1/flatten_Flatten1': {
-        columns: 16
-      },
-      'dense_Dense1/dense_Dense1': {
-        radius: 10,
-        columns: 1,
-        getFillStyle: value => `rgba(255, 255, 255, ${ value * 255})`
+      'conv2d_Conv2D1_input': {
+        domainMax: 255,
       },
       'max_pooling2d_MaxPooling2D1/max_pooling2d_MaxPooling2D1': {
-        radius: 0
+        domainMax: 255,
       },
       'max_pooling2d_MaxPooling2D2/max_pooling2d_MaxPooling2D2': {
-        radius: 1
+        domainMax: 255,
+      },
+      'flatten_Flatten1/flatten_Flatten1': {
+        reshape: [16, 16, 1]
+      },
+      'dense_Dense1/dense_Dense1': {
+        radius: 25,
       }
     },
     onPredict: (context, res, input) => {
@@ -33,10 +34,10 @@ export default async () => {
       res.output.forEach((val, index) => {
         if (val === 1) {
           context.fillStyle = 'rgb(125,125,125)';
-          context.fillRect(420, 290, 100, 100);
+          context.fillRect(720, height / 2 - 50, 100, 100);
           context.fillStyle = 'white';
           context.font = '90px Arial';
-          context.fillText(index, 445, 370);
+          context.fillText(index, 745, height / 2 + 30);
         }
       })
 

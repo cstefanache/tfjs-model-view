@@ -35,62 +35,34 @@ const test = [
 ]
 
 export default async () => {
+  const width = 800;
   let renderContext;
   const model = await tf.loadModel('http://localhost:4500/static/mnist-dense/model.json');
   const modelView = new ModelView(model, {
-    width: 460,
-    height: 400,
-    nodesPadding: 1,
-    prepareRenderContext: ctx => {
-      renderContext = ctx;
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(0,0,460,400);
-    },
-    renderNode: (d, val) => {
-      renderContext.strokeStyle = renderContext.fillStyle = `rgb(200, 200, 200)`;
-      renderContext.beginPath();
-      renderContext.arc(d.x, d.y, 2, 0, 2 * Math.PI);
-      renderContext.fill();
-      renderContext.stroke();
-      renderContext.fillStyle = renderContext.strokeStyle = `rgba(0,0,0,${val})`;
-      renderContext.beginPath();
-      renderContext.arc(d.x, d.y, 1, 0, 2 * Math.PI);
-      renderContext.stroke();
-      renderContext.fill();
-    },
-    onPredict: (context, res) => {
-      res.output.forEach((val, index) => {
-        if (val === 1) {
-          context.fillStyle = 'rgb(125,125,125)';
-          context.fillRect(370, 140, 100, 100);
-          context.fillStyle = 'white';
-          context.font = '90px Arial';
-         context.fillText(index, 385, 220);
-        }
-      })
-
-    },
+    domainMax: 1500,
+    radius: 4,
     layer: {
       'dense_1_input': {
-        columns: 28
+        radius: 2,
+        domainMax: 255,
+        reshape: [28, 28]
       },
       'dense_1/dense_1': {
-        columns: 8
+        domainMax: 255,
+        reshape: [8, 8, 8]
       },
       'dropout_1/dropout_1': {
-        columns: 8
+        reshape: [64, 8]
       },
       'dense_2/dense_2': {
-        columns: 8
+        reshape: [64, 8]
       },
       'dropout_2/dropout_2': {
-        columns: 8
+        reshape: [64, 8]
       },
       'dense_3/dense_3': {
-        columns: 1,
-        layerPadding: 30,
-        radius: 4,
-        getFillStyle: value => `rgba(255, 255, 255, ${ value * 255})`
+        domainMax: 1,
+        radius: 10,
       }
     }
   });

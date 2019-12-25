@@ -5,9 +5,14 @@ import runIris from './iris/iris';
 import runMnist from './mnist/mnist';
 import runMnistConv from './mnist-conv/mnist';
 import runTwoInputs from './multiple-inputs'
-
+import tiny from './tiny/tiny'
 
 const samples = {
+  tiny: {
+    name: 'Tiny',
+    link: 'tiny',
+    executor: tiny
+  },
   twoinputs: {
     name: 'Multiple Inputs',
     link: 'twoinputs',
