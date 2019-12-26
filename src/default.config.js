@@ -9,5 +9,6 @@ export default {
     xPadding: 10,
     yPadding: 10,
    
+    renderLinks: false,
     plotActivations: false
 }

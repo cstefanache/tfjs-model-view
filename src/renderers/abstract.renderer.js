@@ -31,6 +31,7 @@ export default class AbstractRenderer {
                 layerPadding,
                 groupPadding,
                 domainMax = 1,
+                renderLinks,
                 reshape } = layerConfig;
             let [rows, cols, groups] = Object.assign([1, 1, 1], shape.slice(1));
 
@@ -59,7 +60,8 @@ export default class AbstractRenderer {
                         const y = groupPadding + radius + r * step + g * rows * (step + groupPadding)
                         nodes.push({
                             x: cx + c * step,
-                            y
+                            y,
+                            radius
                         });
                         height = y;
                     }
@@ -77,6 +79,7 @@ export default class AbstractRenderer {
                 radius,
                 nodes,
                 domainMax,
+                renderLinks,
                 previousLayers: previousColumn.map(lyr => lyr.name)
             })
 
@@ -119,27 +122,10 @@ export default class AbstractRenderer {
 
     updateValues(layer) {
         const syntheticLayer = this.layersMap[layer.name];
+        syntheticLayer.weights = layer.weights;
         syntheticLayer.previousColumn.forEach((col, idx) => {
             this.updateLayerValues(col, layer.activations[idx]);
         })
 
     }
-
-    // console.log(layer)
-    // const syntheticLayer = this.layersMap[layer.name];
-    // if (data) {
-    //     console.log(syntheticLayer, data)
-    //     for (let i = 0; i < data.length; i++) {
-    //         syntheticLayer.nodes[i].value = data[i];
-    //     }
-    // } else {
-    //     const { previousColumn } = syntheticLayer;
-    //     if (previousColumn) {
-    //         previousColumn.forEach((col, idx) => {
-    //             this.updateValues(col, layer.activations[idx]);
-    //         });
-    //     }
-    // }
-    // }
-
 }

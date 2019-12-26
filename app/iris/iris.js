@@ -37,8 +37,10 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     renderLinks: true,
     layer: {
       'dense_Dense1_input': {
-        layerPadding: 30,
         domainMax: 7
+      },
+      'dense_Dense2/dense_Dense2': {
+        nodePadding: 30
       }
     }
   });
@@ -49,7 +51,9 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
   });
 
   console.log('predicting!')
-  model.predict(tf.tensor([IRIS_DATA[10].slice(0, 4)]));
+  setInterval(() => {
+    model.predict(tf.tensor([IRIS_DATA[Math.floor(Math.random() * IRIS_DATA.length)].slice(0, 4)]));
+  }, 1000);
 
   return model;
 }
