@@ -13,46 +13,70 @@ export default class CanvasRenderer extends AbstractRenderer {
         this.renderElement = canvas;
     }
 
-    update(model, input) {
-        const inputs = Object.keys(this.layers).filter(name => name.indexOf('_input') !== -1);
 
-        if (inputs.length !== input.length) {
-            throw new Error(`identified 2 input layers: ${inputs.join(',')} and had only ${input.length} input values`);
-        }
-
-        inputs.forEach((name, index) => {
-            this.render({ name }, input[index].dataSync());
-        });
-
-        this.render(this.outputLayer, model.outputData);
+    render() {
+        this.renderContext.clearRect(0, 0, this.width, this.height);
+        this.layers.forEach(layer => {
+            const { name, radius, nodes, domainMax } = layer;
+            nodes.forEach((node, index) => {
+                const { x: nx, y: ny, value } = node;
+                this.renderContext.strokeStyle = '#000';
+                this.renderContext.fillStyle = `rgba(0,0,0, ${value / domainMax})`
+                this.renderContext.beginPath();
+                this.renderContext.arc(nx, ny, radius / 2, 0, 2 * Math.PI)
+                if (radius > 3) {
+                    this.renderContext.stroke();
+                }
+                this.renderContext.fill();
+            });
+        })
     }
 
-    render(layer, activations, outputData) {
-        const { name, previousColumn } = layer;
-        if (activations || outputData) {
-            const vals = activations || outputData
-            const { height } = this;
+    prenderLayer(syntheticLayer, activations, weights) {
+        const { name, radius, nodes, domainMax, previousLayers, renderLinks } = syntheticLayer;
+        console.log(name)
 
-            try {
-                const { x, layerWidth, radius, nodes, layerHeight, domainMax } = this.layers[name];
-                const sy = Math.floor((height - layerHeight) / 2);
-                this.renderContext.clearRect(x - radius / 2 - 2, 0, layerWidth + 2, height);
-
-                nodes.forEach((node, index) => {
-                    const { x: nx, y: ny } = node;
-                    this.renderContext.strokeStyle = '#000';
-                    this.renderContext.fillStyle = `rgba(0,0,0, ${vals[index] / domainMax})`
-                    this.renderContext.beginPath();
-                    this.renderContext.arc(nx, sy + ny, radius / 2, 0, 2 * Math.PI)
-                    if (radius > 3) {
-                        this.renderContext.stroke();
-                    }
-                    this.renderContext.fill();
-                });
-            } catch (err) {
-                debugger
+        if (renderLinks && previousLayers && previousLayers.length && weights) {
+            const { 1: bias, 2: kernel } = weights || {};
+            const leftNodes = previousLayers.reduce((memo, item) => {
+                return memo.concat(this.layers[item].nodes)
+            }, [])
+            for (let i = 0; i < leftNodes.length; i++) {
+                const leftNode = leftNodes[i];
+                for (let j = 0; j < nodes.length; j++) {
+                    const rightNode = nodes[j];
+                    const weight = kernel.values[i * j];
+                    const col = weight > 0 ? `rgba(0,0,255,${weight})` : `rgba(255,0,0,${-weight})`
+                    this.renderContext.strokeStyle = col;
+                    this.renderContext.moveTo(leftNode.x, leftNode.y);
+                    this.renderContext.lineTo(rightNode.x, rightNode.y);
+                    this.renderContext.stroke()
+                }
             }
-        } else if (previousColumn && previousColumn.length > 0 && layer.activations) {
+        }
+
+        nodes.forEach((node, index) => {
+            const { x: nx, y: ny } = node;
+            const val = activations ? activations[index] : 0;
+            this.renderContext.strokeStyle = '#000';
+            this.renderContext.fillStyle = `rgba(0,0,0, ${val / domainMax})`
+            this.renderContext.beginPath();
+            this.renderContext.arc(nx, ny, radius / 2, 0, 2 * Math.PI)
+            if (radius > 3) {
+                this.renderContext.stroke();
+            }
+            this.renderContext.fill();
+        });
+    }
+
+    prender(layer, activations) {
+        const { name, previousColumn, weights } = layer;
+        console.log('rendering', name)
+        if (activations) {
+            this.renderLayer(this.layers[name], activations, weights)
+        }
+
+        if (previousColumn && previousColumn.length > 0 && layer.activations) {
             for (let i = 0; i < layer.previousColumn.length; i++) {
                 this.render(layer.previousColumn[i], layer.activations[i])
             }

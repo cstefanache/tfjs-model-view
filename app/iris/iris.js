@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import ModelView from '../../src';
 
 import {
+  IRIS_DATA,
   getIrisData
 } from './data';
 
@@ -39,27 +40,6 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
         layerPadding: 30,
         domainMax: 7
       }
-    },
-    prepareRenderContext: ctx => {
-      ctx.fillStyle = '#FFF';
-      ctx.font = '12px Arial';
-      ctx.fillText('Input', 20, 60);
-      ctx.fillText('Hidden', 75, 20);
-      ctx.fillText('Output', 130, 70);
-    },
-    defaultLayer: {
-      getFillStyle: (value, node) => {
-        const {
-          layerIndex
-        } = node;
-        if (layerIndex === 1) {
-          return `rgba(125,125,255, ${value / 7})`;
-        } else if (layerIndex === 2) {
-          return `rgba(125,255,125, ${value * 10})`
-        } else {
-          return `rgba(255,255,255, ${value})`;
-        }
-      }
     }
   });
 
@@ -67,6 +47,9 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     epochs: 100,
     validationData: [xTest, yTest]
   });
+
+  console.log('predicting!')
+  model.predict(tf.tensor([IRIS_DATA[10].slice(0, 4)]));
 
   return model;
 }

@@ -1,6 +1,5 @@
 import 'babel-polyfill';
 
-import runIrisCustom from './iris-custom/iris';
 import runIris from './iris/iris';
 import runMnist from './mnist/mnist';
 import runMnistConv from './mnist-conv/mnist';
@@ -22,18 +21,7 @@ const samples = {
     name: 'Iris',
     link: 'iris',
     executor: runIris
-  },
-  irisc: {
-    name: 'Iris Canvas',
-    link: 'irisc',
-    executor: runIris,
-    append: '&canvas=1'
-  },
-  customiris: {
-    name: 'Iris with custom renderer',
-    link: 'customiris',
-    executor: runIrisCustom
-  },
+  },  
   mnist: {
     name: 'Mnist Dense',
     link: 'mnist',

@@ -5,7 +5,7 @@ export const IRIS_NUM_CLASSES = IRIS_CLASSES.length;
 
 // Iris flowers data. Source:
 //   https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data
-const IRIS_DATA = [
+export const IRIS_DATA = [
   [5.1, 3.5, 1.4, 0.2, 0],
   [4.9, 3.0, 1.4, 0.2, 0],
   [4.7, 3.2, 1.3, 0.2, 0],

@@ -53,7 +53,7 @@ async function parseModel(model, options) {
         currentLayer.getWeights();
         currentLayer.activations = []
         for (let i = 0; i < layerInput.length; i++) {
-          currentLayer.activations.push(await layerInput[i].dataSync())
+          currentLayer.activations.push(layerInput[i].dataSync())
         }
         parserConfig.hookCallback(currentLayer);
       });

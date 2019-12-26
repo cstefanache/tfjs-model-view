@@ -6,23 +6,24 @@ export default class ModelView {
 
     constructor(model, customConfig) {
         const config = Object.assign({}, defaultConfig, customConfig);
-
         let renderer;
 
         config.predictCallback = input => {
             if (renderer) {
                 renderer.update(model, input);
+                renderer.render();
             }
         }
 
         config.hookCallback = layer => {
             if (renderer) {
-                renderer.render(layer)
+                renderer.updateValues(layer);
+                renderer.render();
             }
         }
 
         parseModel(model, config).then(res => {
             renderer = new CanvasRenderer(config, res);
-        })
+        });
     }
 }

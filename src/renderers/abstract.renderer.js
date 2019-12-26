@@ -11,11 +11,17 @@ export default class AbstractRenderer {
         let maxHeight = (yPadding || 1) * 2;
         let cx = xPadding || 0
 
-        this.layers = {};
+        function processColumn(lyr, col = 0) {
+            lyr.column = col;
+            lyr.previousColumn.forEach(l => {
+                processColumn(l, col + 1);
+            });
+        }
 
+        processColumn(layerArr[layerArr.length - 1]);
 
         layerArr.forEach(l => {
-            const { name, shape, activation } = l;
+            const { name, shape, previousColumn } = l;
             this.outputLayer = l;
             const customConfig = layer[name] || {};
             const layerConfig = Object.assign({}, config, customConfig)
@@ -63,7 +69,7 @@ export default class AbstractRenderer {
             height += groupPadding + radius;
             maxHeight = Math.max(maxHeight, height);
 
-            this.layers[name] = {
+            Object.assign(l, {
                 name,
                 x: cx,
                 layerWidth: width,
@@ -71,8 +77,8 @@ export default class AbstractRenderer {
                 radius,
                 nodes,
                 domainMax,
-                layer: l
-            }
+                previousLayers: previousColumn.map(lyr => lyr.name)
+            })
 
             cx += width;
 
@@ -80,7 +86,60 @@ export default class AbstractRenderer {
 
         cx += xPadding || 0;
 
+        layerArr.forEach(l => {
+            const offsetY = Math.floor((maxHeight - l.layerHeight) / 2);
+            l.nodes.forEach(nd => nd.y += offsetY);
+        });
+
         Object.assign(this, { width: cx, height: maxHeight });
+
+        this.layers = layerArr;
+        this.layersMap = layerArr.reduce((memo, item) => {
+            memo[item.name] = item;
+            return memo;
+        }, {});
     }
+
+    update(model, input) {
+        if (input) {
+            model.inputs.forEach((inputLayer, index) => {
+                const syntheticLayer = this.layersMap[inputLayer.name];
+                this.updateLayerValues(syntheticLayer, input[index].dataSync());
+            });
+        }
+
+        this.updateLayerValues(this.outputLayer, model.outputData);
+    }
+
+    updateLayerValues(layer, data) {
+        for (let i = 0; i < layer.nodes.length; i++) {
+            layer.nodes[i].value = data[i];
+        }
+    }
+
+    updateValues(layer) {
+        const syntheticLayer = this.layersMap[layer.name];
+        syntheticLayer.previousColumn.forEach((col, idx) => {
+            this.updateLayerValues(col, layer.activations[idx]);
+        })
+
+    }
+
+    // console.log(layer)
+    // const syntheticLayer = this.layersMap[layer.name];
+    // if (data) {
+    //     console.log(syntheticLayer, data)
+    //     for (let i = 0; i < data.length; i++) {
+    //         syntheticLayer.nodes[i].value = data[i];
+    //     }
+    // } else {
+    //     const { previousColumn } = syntheticLayer;
+    //     if (previousColumn) {
+    //         previousColumn.forEach((col, idx) => {
+    //             this.updateValues(col, layer.activations[idx]);
+    //         });
+    //     }
+    // }
+    // }
 
 }
