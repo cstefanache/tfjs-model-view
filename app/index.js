@@ -1,9 +1,9 @@
 import 'babel-polyfill';
 
 import runIris from './iris/iris';
+import runIrisCustom from './iris-custom/iris';
 import runMnist from './mnist/mnist';
 import runMnistConv from './mnist-conv/mnist';
-import runTwoInputs from './multiple-inputs'
 import tiny from './tiny/tiny'
 
 const samples = {
@@ -12,16 +12,16 @@ const samples = {
     link: 'tiny',
     executor: tiny
   },
-  twoinputs: {
-    name: 'Multiple Inputs',
-    link: 'twoinputs',
-    executor: runTwoInputs
-  },
   iris: {
     name: 'Iris',
     link: 'iris',
     executor: runIris
-  },  
+  },
+  irisc: {
+    name: 'Iris Custom',
+    link: 'irisc',
+    executor: runIrisCustom
+  },
   mnist: {
     name: 'Mnist Dense',
     link: 'mnist',

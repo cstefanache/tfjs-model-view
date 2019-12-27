@@ -5,24 +5,27 @@ import ModelView from '../../src';
 export default async () => {
   const height = 1260;
   const model = await tf.loadModel('https://gitcdn.link/repo/cstefanache/cstefanache.github.io/master/models/mnistconv/mnist-conv.json')
-  const modelView = new ModelView(model, {
-    radius: 5,
+  new ModelView(model, {
+    radius: 2,
     nodePadding: 0,
     layer: {
       'conv2d_Conv2D1_input': {
-        domainMax: 255,
+        color: [255, 255, 255],
+        radius: 4,
+        domain: [0, 255]
       },
       'max_pooling2d_MaxPooling2D1/max_pooling2d_MaxPooling2D1': {
-        domainMax: 255,
+        color: [255, 255, 255],
+        domain: [0, 255]
       },
       'max_pooling2d_MaxPooling2D2/max_pooling2d_MaxPooling2D2': {
-        domainMax: 255,
+        domain: [0, 255]
       },
       'flatten_Flatten1/flatten_Flatten1': {
         reshape: [16, 16, 1]
       },
       'dense_Dense1/dense_Dense1': {
-        radius: 25,
+        radius: 25
       }
     },
     onPredict: (context, res, input) => {

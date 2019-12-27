@@ -37,7 +37,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     renderLinks: true,
     layer: {
       'dense_Dense1_input': {
-        domainMax: 7
+        domain: [0, 1]
       },
       'dense_Dense2/dense_Dense2': {
         nodePadding: 30

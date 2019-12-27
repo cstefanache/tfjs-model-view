@@ -39,16 +39,15 @@ export default async () => {
   let renderContext;
   const model = await tf.loadModel('http://localhost:4500/static/mnist-dense/model.json');
   const modelView = new ModelView(model, {
-    domainMax: 1500,
     radius: 4,
+    domain: [0, 1500],
     layer: {
       'dense_1_input': {
         radius: 2,
-        domainMax: 255,
+        domain: [0, 255],
         reshape: [28, 28]
       },
       'dense_1/dense_1': {
-        domainMax: 255,
         reshape: [8, 8, 8]
       },
       'dropout_1/dropout_1': {
@@ -61,7 +60,7 @@ export default async () => {
         reshape: [64, 8]
       },
       'dense_3/dense_3': {
-        domainMax: 1,
+        domain: [0, 1],
         radius: 10,
       }
     }

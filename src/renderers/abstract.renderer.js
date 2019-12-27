@@ -1,15 +1,41 @@
+const colors = [
+    [128, 0, 0],
+    [0, 0, 128],
+    [145, 30, 180],
+    [245, 130, 48],
+    [230, 190, 255],
+    [60, 180, 75],
+    [0, 130, 200],
+    [70, 240, 240],
+    [240, 50, 230],
+    [210, 245, 60],
+    [250, 190, 190],
+    [0, 128, 128],
+    [170, 110, 40],
+    [255, 250, 200],
+    [230, 25, 75],
+    [170, 255, 195],
+    [128, 128, 0],
+    [255, 215, 180],
+
+    [128, 128, 128],
+    [255, 255, 255],
+    [0, 0, 0]
+]
+
 export default class AbstractRenderer {
 
     constructor(config, initData) {
         const {
             xPadding,
             yPadding,
+            xOffset,
             layer = {},
         } = config;
         const { layerArr } = initData;
 
         let maxHeight = (yPadding || 1) * 2;
-        let cx = xPadding || 0
+        let cx = (xPadding || 0) + (xOffset || 0)
 
         function processColumn(lyr, col = 0) {
             lyr.column = col;
@@ -20,21 +46,24 @@ export default class AbstractRenderer {
 
         processColumn(layerArr[layerArr.length - 1]);
 
-        layerArr.forEach(l => {
+        layerArr.forEach((l, lindex) => {
             const { name, shape, previousColumn } = l;
             this.outputLayer = l;
             const customConfig = layer[name] || {};
+
             const layerConfig = Object.assign({}, config, customConfig)
             const {
                 radius,
                 nodePadding,
                 layerPadding,
                 groupPadding,
-                domainMax = 1,
+                domain = [0, 1],
                 renderLinks,
+                renderNode,
                 reshape } = layerConfig;
-            let [rows, cols, groups] = Object.assign([1, 1, 1], shape.slice(1));
 
+            const color = layerConfig.color || (lindex < colors.length ? colors[lindex] : [0, 0, 0]);
+            let [rows, cols, groups] = Object.assign([1, 1, 1], shape.slice(1));
             const totalNodes = rows * cols * groups;
 
             if (reshape) {
@@ -49,17 +78,18 @@ export default class AbstractRenderer {
             }
 
             cx += layerPadding;
+
             const step = radius + nodePadding;
             const width = layerPadding + cols * step
             const nodes = [];
             let height = 0;
 
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    for (let g = 0; g < groups; g++) {
-                        const y = groupPadding + radius + r * step + g * rows * (step + groupPadding)
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    for (let group = 0; group < groups; group++) {
+                        const y = groupPadding + radius + row * step + group * rows * (step + groupPadding)
                         nodes.push({
-                            x: cx + c * step,
+                            x: cx + col * step,
                             y,
                             radius
                         });
@@ -78,13 +108,14 @@ export default class AbstractRenderer {
                 layerHeight: height,
                 radius,
                 nodes,
-                domainMax,
+                domain,
                 renderLinks,
+                renderNode,
+                color,
                 previousLayers: previousColumn.map(lyr => lyr.name)
             })
 
             cx += width;
-
         });
 
         cx += xPadding || 0;
