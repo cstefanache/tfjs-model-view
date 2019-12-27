@@ -6,7 +6,6 @@ Features:
 
 * Automatically render of the neural net 
 * Automatically update weights/biases/values
-* Different rendering methods: canvas(default), d3
 
 The library also aims to be flexible and make it easy for you to incorporate.
 
@@ -31,55 +30,105 @@ new ModelView(model)
 
 Customized:
 ```
-const modelView = new ModelView(model, {
-  /** supports: canvas, d3 */
-  renderer: 'd3',   
-  
-  /** if set to false you can get the DOM using modelView.getDOMElement() */
-  appendImmediately: true,
+new ModelView(model, {
+    printStats: true,
+    radius: 25,
+    renderLinks: true,
+    xOffset: 100,
+    renderNode(ctx, node) {
+      const { x, y, value } = node;
+      ctx.font = '10px Arial';
+      ctx.fillStyle = '#000';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(Math.round(value * 100) / 100, x, y);
+    },
+    onBeginRender: renderer => {
+      const { renderContext } = renderer;
+      renderContext.fillStyle = '#000';
+      renderContext.textAlign = 'end';
+      renderContext.font = '12px Arial';
+      renderContext.fillText('Sepal Length (cm)', 110, 110);
+      renderContext.fillText('Sepal Width (cm)', 110, 136);
+      renderContext.fillText('Petal Length (cm)', 110, 163);
+      renderContext.fillText('Petal Width (cm)', 110, 190);
 
-  /** node radius if no custom renderer is defined */            
-  radius: 10,
+      renderContext.textAlign = 'start';
+      renderContext.fillText('Setosa', renderer.width - 60, 95);
+      renderContext.fillText('Versicolor', renderer.width - 60, 150);
+      renderContext.fillText('Virginica', renderer.width - 60, 205);
+    },
+    layer: {
+      'dense_Dense1_input': {
+        domain: [0, 8],
+        color: [165, 130, 180]
+      },
+      'dense_Dense1/dense_Dense1': {
+        color: [125, 125, 125]
+      },
+      'dense_Dense2/dense_Dense2': {
+        color: [125, 125, 125]
+      },
+      'dense_Dense3/dense_Dense3': {
+        nodePadding: 30
+      }
+    }
+  });
+```
 
-  /** By default d3 has property set to true and canvas is set to false */
-  renderLinks: false,
-
-  /** distance between nodes */
-  nodesPadding: 0,
-
-  /** prints layer names */                            
+Customizing:
+```
+new ModelView(model, {
+  /** renders the list of layers **/
   printStats: true,
 
-  /** gets d3 svg or canvas ctx to pre render */                   
-  prepareRenderContext: context => { ... },
+  /** Default domain for color intensity **/
+  domain: [0, 1],
 
-  /** executed when predict is called. gets drawing context and prediction result as parameters */
-  onPredict: (context, result) => { ... },
+  /** Default node radius **/
+  radius: 6,
 
-  /** executed during training and predict. used to update a node */
-  updateNode: (node, value) => { ... },
+  /** Default node padding **/
+  nodePadding: 2,
 
-  /** executed at initialization for each node. context d3 or canvas context */
-  nodeRenderer: context => { ... },
+  /** Default layer padding **/
+  layerPadding: 20,
+
+  /** Default group padding **/
+  groupPadding: 1,
+    
+  /** Horizontal padding **/
+  xPadding: 10,
+
+  /** Vertical padding **/
+  yPadding: 10,
+   
+  /** Render links between layers **/
+  renderLinks: false,
   
-  /** can be used to define default layer parameters */
-  defaultLayer: {
-    /** used in Canvas renderer used to get the node fill style */
-    getFillStyle: (value, node) => { ... }
-  },
+  /** Stroke node outer circle **/
+  nodeStroke: true,
 
-  /** can be used to customize a single layer */
+  /** custom render node function **/
+  renderNode: (ctx, node, nodeIdx) => {...},
+
+  /** If present will be executed before node rendering **/
+  onBeginRender: renderer => { ... },
+
+  /** If present will be executed after all node rendering is finished **/
+  onEndRender: renderer => { ... },
+
+  /** Personalized layer configuration **/
+  /** All defaults can be overridden for each layer individually **/
   layer: {
+    'layerName': {
+      /** Any property mentioned above **/
 
-    /** layer name. layers will be printed on console if printStats: true. All properties defined above can be overridden for a single layer */
-    'dense_Dense1_input': {
-
-      /** sample modification of padding for the input layer */
-      layerPadding: 30
-      
+      /** Reshape layer to antoher [cols, rows, groups] layout **/
+      reshape: [4, 4, 8]
     }
   }
-})
+});
 ```
 
 ## Installation

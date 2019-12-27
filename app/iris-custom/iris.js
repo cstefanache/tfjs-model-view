@@ -86,7 +86,6 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     validationData: [xTest, yTest]
   });
 
-  console.log('predicting!')
   setInterval(() => {
     model.predict(tf.tensor([IRIS_DATA[Math.floor(Math.random() * IRIS_DATA.length)].slice(0, 4)]));
   }, 1000);
