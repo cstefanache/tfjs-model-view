@@ -6,7 +6,6 @@ import {
   getIrisData
 } from './data';
 
-
 async function trainModel(xTrain, yTrain, xTest, yTest) {
 
   // Define the topology of the model: two dense layers.
@@ -41,7 +40,6 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     printStats: true,
     radius: 25,
     renderLinks: true,
-    renderValue: true,
     xOffset: 100,
     renderNode(ctx, node) {
       const { x, y, value } = node;

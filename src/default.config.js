@@ -10,5 +10,10 @@ export default {
     yPadding: 10,
    
     renderLinks: false,
-    plotActivations: false
+    plotActivations: false,
+    nodeStroke: true,
+
+    onRendererInitialized: renderer => {
+        document.body.appendChild(renderer.canvas);
+    }
 }

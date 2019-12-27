@@ -1,26 +1,15 @@
 const colors = [
-    [128, 0, 0],
-    [0, 0, 128],
-    [145, 30, 180],
-    [245, 130, 48],
-    [230, 190, 255],
-    [60, 180, 75],
-    [0, 130, 200],
-    [70, 240, 240],
-    [240, 50, 230],
-    [210, 245, 60],
-    [250, 190, 190],
-    [0, 128, 128],
-    [170, 110, 40],
-    [255, 250, 200],
-    [230, 25, 75],
-    [170, 255, 195],
-    [128, 128, 0],
-    [255, 215, 180],
-
-    [128, 128, 128],
-    [255, 255, 255],
-    [0, 0, 0]
+    [6, 57, 143],
+    [0, 107, 92],
+    [216, 139, 0],
+    [180, 0, 85],
+    [106, 2, 143],
+    [216, 109, 0],
+    [2, 105, 134],
+    [0, 142, 103],
+    [201, 0, 39],
+    [139, 11, 215],
+    [171, 141, 0]
 ]
 
 export default class AbstractRenderer {
@@ -30,7 +19,7 @@ export default class AbstractRenderer {
             xPadding,
             yPadding,
             xOffset,
-            layer = {},
+            layer = {}
         } = config;
         const { layerArr } = initData;
 
@@ -60,6 +49,7 @@ export default class AbstractRenderer {
                 domain = [0, 1],
                 renderLinks,
                 renderNode,
+                nodeStroke,
                 reshape } = layerConfig;
 
             const color = layerConfig.color || (lindex < colors.length ? colors[lindex] : [0, 0, 0]);
@@ -87,7 +77,7 @@ export default class AbstractRenderer {
             for (let row = 0; row < rows; row++) {
                 for (let col = 0; col < cols; col++) {
                     for (let group = 0; group < groups; group++) {
-                        const y = groupPadding + radius + row * step + group * rows * (step + groupPadding)
+                        const y = radius + row * step + group * rows * step + group * groupPadding
                         nodes.push({
                             x: cx + col * step,
                             y,
@@ -111,6 +101,7 @@ export default class AbstractRenderer {
                 domain,
                 renderLinks,
                 renderNode,
+                nodeStroke,
                 color,
                 previousLayers: previousColumn.map(lyr => lyr.name)
             })

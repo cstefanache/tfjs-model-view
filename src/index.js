@@ -6,6 +6,7 @@ export default class ModelView {
 
     constructor(model, customConfig) {
         const config = Object.assign({}, defaultConfig, customConfig);
+        const { onRendererInitialized } = config;
         let renderer;
 
         config.predictCallback = input => {
@@ -24,6 +25,9 @@ export default class ModelView {
 
         parseModel(model, config).then(res => {
             renderer = new CanvasRenderer(config, res);
+            if (onRendererInitialized) {
+                onRendererInitialized(renderer);
+            }
         });
     }
 }

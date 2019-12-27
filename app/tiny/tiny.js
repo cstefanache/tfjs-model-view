@@ -30,7 +30,10 @@ export default async () => {
 
   model.summary();
 
-  new ModelView(model);
+  new ModelView(model, {
+    radius: 25,
+    renderLinks: true
+  });
 
   setTimeout(() => {
     const data = model.predict(tf.tensor([[1]])).dataSync();

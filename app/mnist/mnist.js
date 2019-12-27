@@ -35,20 +35,19 @@ const test = [
 ]
 
 export default async () => {
-  const width = 800;
-  let renderContext;
   const model = await tf.loadModel('http://localhost:4500/static/mnist-dense/model.json');
-  const modelView = new ModelView(model, {
+  new ModelView(model, {
     radius: 4,
     domain: [0, 1500],
     layer: {
       'dense_1_input': {
-        radius: 2,
+        radius: 4,
+        nodeStroke: false,
         domain: [0, 255],
         reshape: [28, 28]
       },
       'dense_1/dense_1': {
-        reshape: [8, 8, 8]
+        reshape: [64, 8]
       },
       'dropout_1/dropout_1': {
         reshape: [64, 8]
@@ -61,11 +60,18 @@ export default async () => {
       },
       'dense_3/dense_3': {
         domain: [0, 1],
-        radius: 10,
+        radius: 25,
+        renderNode: (ctx, node, nodeIdx) => {
+          const { x, y } = node;
+          ctx.font = '10px Arial';
+          ctx.fillStyle = '#000';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(nodeIdx, x, y);
+        }
       }
     }
   });
-
 
   const predict = async () => {
     await model.predict(tf.tensor([
